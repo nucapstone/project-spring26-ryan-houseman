@@ -178,37 +178,3 @@ bms_lineplot(bms_data,'yards_per_minute','session_type','Trend of Yards per Minu
 
 
 ##############################################################################
-
-# # Scatter Plot of Distance vs # of Sprints
-# sns.scatterplot(data=bms_data, x="distance", y="sprints",hue="session_type",palette='Set2')
-# plt.show()
-
-
-# # Bar plot of Total Distance by Player
-# plt.figure(figsize=(6,10))
-# sns.barplot(x='distance',y='player_name',data=bms_data,estimator=sum,hue='player_name',palette='Set2',orient='h')
-
-# plt.title("Total Distance by Player",fontsize=16)
-# plt.ylabel("Player Name",fontsize=12)
-# plt.xlabel("Total Distance (yds)",fontsize=12)
-
-# plt.tight_layout()
-# plt.show()
-
-
-# # FacetGrid of Barplot Above Split out by Session Type
-# g = sns.FacetGrid(data=bms_data,col='session_type',margin_titles=True,despine=False,height=8,aspect=1.2)
-# g.map_dataframe(sns.barplot, x='distance',y='player_name',estimator=sum,hue='player_name',palette='Set2',orient='h',order=sorted_dist_s)
-# g.set_axis_labels("Total Distance (yds)","Player Name")
-# g.set_titles(['Match','Training Session'])
-# plt.tight_layout()
-# plt.show()
-
-
-# # FacetGrid of Barplot Mean Distance by Player by Session Type
-# g = sns.FacetGrid(data=bms_data,col='session_type',margin_titles=True,despine=False,height=8,aspect=1.2)
-# g.map_dataframe(sns.barplot, x='distance',y='player_name',estimator=np.mean,hue='player_name',palette='Set2',orient='h',order=sorted_dist_m)
-# g.set_axis_labels("Average Distance (yds)","Player Name")
-# g.set_titles(['Match','Training Session'])
-# plt.tight_layout()
-# plt.show()
