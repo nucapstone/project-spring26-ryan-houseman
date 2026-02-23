@@ -42,13 +42,13 @@ The dataset includes
 Initial Plots (various other plots are saved in ./figures
 Code for data exploration and plotting is saved in .src/eda.py.  This includes several plotting functions that I plan to build on for eventual results and reporting.  I would also like to explore the use of Observable Notebooks for web-based data visualization later on in the project.
 
-![Alt text](./figures/barplot_high_intensity.png)
+![Alt text](./figures/eda/barplot_high_intensity.png)
 
 **Plot 1:**
 This plot shows season totals of high intensity yards covered by player and session type.  Similarly, I've plotted total distance by player.  Players that were healthy throughout the season consistently ran several hundred miles in both practices and matches.  That's a lot of wear and tear! 
 
 
-![Alt text](./figures/trend_yards_per_minute_prince.png)
+![Alt text](./figures/eda/trend_yards_per_minute_prince.png)
 
 **Plot 2:**
 This plot highlights one players yards per minute metric as the season progressed.  This is a player who consistently ranked highly for several metrics, and also suffered several overuse injuries in the back half of the season flagged with vertical red-dashes.
