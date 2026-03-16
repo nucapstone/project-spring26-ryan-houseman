@@ -71,7 +71,7 @@ def bms_lineplot(dataset,yvar,hue,plot_title,xlab,ylab,save_fig,fig_name,show_me
         ax.axhline(mean_y,color='#4E4E52',linestyle='--',linewidth=1.5)
     
     if highlight_injury:
-        injury_dates = dataset.loc[(dataset['injury_day'] == 1) & (dataset['player_name'] == highlight_player),'date']
+        injury_dates = dataset.loc[(dataset['overuse_injury_day'] == 1) & (dataset['player_name'] == highlight_player),'date']
         for day in injury_dates:
             ax.axvline(day,color='red',linestyle='--',linewidth=1)
     
@@ -96,7 +96,7 @@ def output_lineplot(dataset,hue,plot_title,xlab,ylab,save_fig,fig_name,highlight
     sns.lineplot(data=dataset[dataset['player_name']==highlight_player], x='date', y='injury_predicted_prob', hue=hue, palette=colors,linewidth=2.5,alpha=1)
 
     # Highlight Injuries in Red lines & Shade week before
-    injury_dates = dataset.loc[(dataset['injury_day'] == 1) & (dataset['player_name'] == highlight_player),'date'].unique()
+    injury_dates = dataset.loc[(dataset['overuse_injury_day'] == 1) & (dataset['player_name'] == highlight_player),'date'].unique()
     for day in injury_dates:
         ax.axvline(day,color='red',linestyle='--',linewidth=2)
         week_earlier = day - pd.Timedelta(weeks=1)

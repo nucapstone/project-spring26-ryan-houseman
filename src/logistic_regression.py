@@ -47,7 +47,7 @@ model_data.columns = ['PCA1','PCA2','PCA3','PCA4','PCA5']
 model_data['injury_flag'] = bms_data['overuse_injury_upcoming_week']
 
 #Add in player variables and dates to include in reporting output
-model_data[['player_name','injury_day','date']] = bms_data[['player_name','injury_day','date']]
+model_data[['player_name','overuse_injury_day','date']] = bms_data[['player_name','overuse_injury_day','date']]
 
 print(model_data.head())
 
@@ -63,8 +63,8 @@ print(sum(y))
 # Split dataset into training and testing sets
 X_train_full, X_test_full, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=42)
 
-X_train = X_train_full.drop(['player_name','injury_day','date'],axis=1)
-X_test = X_test_full.drop(['player_name','injury_day','date'],axis=1)
+X_train = X_train_full.drop(['player_name','overuse_injury_day','date'],axis=1)
+X_test = X_test_full.drop(['player_name','overuse_injury_day','date'],axis=1)
 
 print('\nTotal Data Points (TEST)')
 print(len(y_test))
@@ -86,11 +86,8 @@ model.fit(X_train, y_train)
 print('\nModel Output Injury Probabilities')
 y_prob = model.predict_proba(X_test)
 
-# sns.lineplot(data=y_prob[:,1],linewidth=1.2)
-# plt.axhline(0.035,color='red',linestyle='--',linewidth=1.5)
-# plt.show()
-
-# Make predictions 50% threshold is too high, test several
+# Make predictions 
+# Default of 50% threshold is too high, test various & get stakeholder feedback on sensitivity
 custom_threshold = 0.04
 #y_pred = model.predict(X_test) - Uses 0.5 Threshold
 y_pred = (y_prob[:,1] >= custom_threshold).astype(int)
@@ -122,10 +119,7 @@ output_data_full['injury_flag'] = y_test
 output_data_full['date'] = pd.to_datetime(output_data_full['date'])
 output_data_full = output_data_full.sort_values('date')
 
-output_data = output_data_full.groupby(['player_name','date','injury_day'],as_index=False).agg({'injury_predicted_prob':'mean','injury_prediction':'max','injury_flag':'max'})
-
-
-
+output_data = output_data_full.groupby(['player_name','date','overuse_injury_day'],as_index=False).agg({'injury_predicted_prob':'mean','injury_prediction':'max','injury_flag':'max'})
 from plotting import output_lineplot # type: ignore
 from color_palette import player_colors, match_colors, position_colors #type: ignore
 
@@ -134,4 +128,13 @@ for player in output_data['player_name'].unique():
     print(f'\nPlottin results for: {player}')
     lname = player.split(' ',1)[1].lower().replace(' ','_')
     output_lineplot(output_data,'player_name','Trend of Injury Likelihood','Date','Injury Likelihood',True,f'figures/results/results_injury_likelihood_{lname}.png',player,player_colors,custom_threshold)
+
+
+####################################################################
+# Save results to Data folder
+
+print('\nSave Combinded Data to CSV')
+model_results_file = data_dir / 'model_results.csv'
+output_data.to_csv(model_results_file,index=False)
+
 
