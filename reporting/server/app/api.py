@@ -16,15 +16,7 @@ bp = Blueprint("bms_injury_prediction", __name__)
 
 @bp.route("/api/model_results/<session_date>")
 def get_model_results(session_date):
-    #session_date = request.args.get('session_date')
     db = get_db()
-    # if not session_date:
-    #     results_out = db.execute(
-    #         "SELECT player_id, player_name, session_date, overuse_injury_day, injury_flag, "
-    #         "injury_predicted_prob, injury_prediction, predicted_injury_flag_rate"
-    #             " FROM model_results"
-    #     ).fetchall()
-    # else:
     results_out = db.execute(
         "SELECT player_id, player_name, session_date, overuse_injury_day, injury_flag, "
         "injury_predicted_prob, injury_prediction, predicted_injury_flag_rate"
@@ -32,6 +24,34 @@ def get_model_results(session_date):
             " WHERE session_date = ?"
             " ORDER BY predicted_injury_flag_rate DESC",
             (session_date,)
+    ).fetchall()
+    results = []
+    for row in results_out:
+        results.append(dict(row))    
+    return jsonify(results)
+
+@bp.route("/api/player_detail/<player_id>/<session_date>")
+def get_player_detail(session_date, player_id):
+    db = get_db()
+    player_results = db.execute(
+        "SELECT player_id, player_name, session_date, overuse_injury_day, injury_flag, "
+        "injury_predicted_prob, injury_prediction, predicted_injury_flag_rate"
+            " FROM model_results"
+            " WHERE session_date = ? AND player_id = ?",
+            (session_date,player_id)
+    ).fetchone()
+    return jsonify(dict(player_results))
+
+@bp.route("/api/player_trend/<player_id>")
+def get_player_trend(player_id):
+    db = get_db()
+    results_out = db.execute(
+        "SELECT player_id, player_name, session_date,"
+        "injury_predicted_prob, predicted_injury_flag_rate"
+            " FROM model_results"
+            " WHERE player_id = ?"
+            " ORDER BY session_date",
+            (player_id,)
     ).fetchall()
     results = []
     for row in results_out:

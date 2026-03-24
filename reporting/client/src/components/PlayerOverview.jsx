@@ -23,7 +23,6 @@ export default function HospitalSearch({SelectedDate, changeView,selectedPlayer}
 
   useEffect(() => {
       const state_url = `http://127.0.0.1:5000/api/model_results/${encodeURIComponent(SelectedDate)}`;
-      // const state_url = `http://127.0.0.1:5000/api/model_results/2025-11-22`;
       fetch(state_url)
         .then((response) => {
           if (!response.ok) {
@@ -59,17 +58,11 @@ export default function HospitalSearch({SelectedDate, changeView,selectedPlayer}
         </thead>
         <tbody>
           {data.map((dp) => (
-            // <tr key={dp.player_id} onClick={() => {
             <tr key={dp.player_id} style={getRowStyle(dp.predicted_injury_flag_rate)} onClick={() => {
               changeView("player_detail");
               setPlayer(dp.player_id);
               selectedPlayer(dp.player_id);
               }}>
-              {/* <td style={cellStyle}>{dp.player_id}</td>
-              <td style={cellStyle}>{dp.player_name}</td>
-              <td style={cellStyle}>{dp.injury_predicted_prob}</td>
-              <td style={cellStyle}>{dp.predicted_injury_flag_rate}</td>
-              <td style={cellStyle}>{dp.session_date}</td> */}
               <td>{dp.player_id}</td>
               <td>{dp.player_name}</td>
               <td>{dp.injury_predicted_prob}</td>

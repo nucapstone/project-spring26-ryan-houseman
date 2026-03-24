@@ -47,7 +47,7 @@ model_data.columns = ['PCA1','PCA2','PCA3','PCA4','PCA5']
 model_data['injury_flag'] = bms_data['overuse_injury_upcoming_week']
 
 #Add in player variables and dates to include in reporting output
-model_data[['player_name','overuse_injury_day','date']] = bms_data[['player_name','overuse_injury_day','date']]
+model_data[['player_id','player_name','overuse_injury_day','date']] = bms_data[['player_id','player_name','overuse_injury_day','date']]
 
 print(model_data.head())
 
@@ -63,8 +63,8 @@ print(sum(y))
 # Split dataset into training and testing sets
 X_train_full, X_test_full, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=42)
 
-X_train = X_train_full.drop(['player_name','overuse_injury_day','date'],axis=1)
-X_test = X_test_full.drop(['player_name','overuse_injury_day','date'],axis=1)
+X_train = X_train_full.drop(['player_id','player_name','overuse_injury_day','date'],axis=1)
+X_test = X_test_full.drop(['player_id','player_name','overuse_injury_day','date'],axis=1)
 
 print('\nTotal Data Points (TEST)')
 print(len(y_test))
@@ -119,7 +119,7 @@ output_data_full['injury_flag'] = y_test
 output_data_full['date'] = pd.to_datetime(output_data_full['date'])
 output_data_full = output_data_full.sort_values('date')
 
-output_data = output_data_full.groupby(['player_name','date','overuse_injury_day'],as_index=False).agg({'injury_predicted_prob':'mean','injury_prediction':'max','injury_flag':'max'})
+output_data = output_data_full.groupby(['player_id','player_name','date','overuse_injury_day'],as_index=False).agg({'injury_predicted_prob':'mean','injury_prediction':'max','injury_flag':'max'})
 from plotting import output_lineplot # type: ignore
 from color_palette import player_colors, match_colors, position_colors #type: ignore
 
@@ -133,7 +133,7 @@ for player in output_data['player_name'].unique():
 ####################################################################
 # Save results to Data folder
 
-print('\nSave Combinded Data to CSV')
+print('\nSave Model Results to CSV')
 model_results_file = data_dir / 'model_results.csv'
 output_data.to_csv(model_results_file,index=False)
 

@@ -55,12 +55,6 @@ rslts_df.drop('record_cnt',axis=1,inplace=True)
 print(rslts_df.head())
 
 #################################################################################
-# Create player IDs
-unique_players = rslts_df['player_name'].unique()
-player_to_id = {cat: idx+100000 for idx, cat in enumerate(unique_players)}
-
-# Step 2: Map categories to IDs
-rslts_df['player_id'] = rslts_df['player_name'].map(player_to_id)
 
 rslts_df['session_date'] = pd.to_datetime(rslts_df['session_date'],format='%Y-%m-%d',errors='coerce')
 rslts_df['session_date'] = rslts_df['session_date'].dt.strftime('%Y-%m-%d')
@@ -69,6 +63,7 @@ rslts_df = rslts_df[['player_id','player_name','session_date','overuse_injury_da
 #################################################################################
 
 # Initialize Database 
+print('\nInitialize Database and populate with Model Results')
 sql_file = rpt_dir / 'schema.sql'
 with open(sql_file, 'r', encoding='utf-8') as f:
             sql_script = f.read()
@@ -81,8 +76,9 @@ cursor.executescript(sql_script)
 conn.commit()
 conn.close()
 
-def append_df_to_db(db_path, table_name,df):
+def populate_db_from_df(db_path, table_name,df):
   try:
+        print('Connect to Database')
         # Connect to SQLite database
         conn = sqlite3.connect(db_path)
 
@@ -97,12 +93,11 @@ def append_df_to_db(db_path, table_name,df):
       print(f"SQLite error: {e}")
       return
 
-#db_path = rpt_dir / '/server/bms_gps.db'
-append_df_to_db(db_path,'model_results',rslts_df)
+populate_db_from_df(db_path,'model_results',rslts_df)
 
 #################################################################################
 # Save results to Data folder
 
-print('\nSave Combinded Data to CSV')
+print('\nSave Database Input to CSV')
 db_file = data_dir / 'db_prep.csv'
 rslts_df.to_csv(db_file,index=False)

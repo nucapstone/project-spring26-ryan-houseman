@@ -195,9 +195,12 @@ dataset.rename(columns={'position_Centre Attacking Midfielder':'position_center_
                         'position_Right Back':'position_right_back','position_Right Midfielder':'position_right_midfielder','position_Striker':'position_striker',
                         'session_type_Match Session':'session_type_match','session_type_Training Session':'session_type_training'}, inplace=True)
 
-# Display column names as a list
-# column_names = dataset.columns.tolist()
-# print(column_names)
+# Create player IDs
+unique_players = dataset['player_name'].unique()
+player_to_id = {cat: idx+100000 for idx, cat in enumerate(unique_players)}
+
+# Step 2: Map categories to IDs
+dataset['player_id'] = dataset['player_name'].map(player_to_id)
 
 print('\nCombined Data Output')
 print(dataset.head())
