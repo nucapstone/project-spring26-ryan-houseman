@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
 
-export default function Dropdown({onSelect}) {
+export default function Dropdown({curView, onSelect, player_id}) {
   const [options, setData] = useState([]);
   const [selected, setSelected] = useState("2025-11-22");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  let dates_url;
+  if (curView === "player_overview") {
+    dates_url = "http://127.0.0.1:5000/api/dates";
+  } else {
+    dates_url = `http://127.0.0.1:5000/api/player_dates/${encodeURIComponent(player_id)}`;
+  }
+
   useEffect(() => {
-      fetch("http://127.0.0.1:5000/api/dates")
+      fetch(dates_url)
         .then((response) => {
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);

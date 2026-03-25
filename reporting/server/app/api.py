@@ -70,3 +70,18 @@ def get_dates():
     for row in dates_out:
       dates.append({"session_date":row[0]})
     return jsonify(dates)
+
+@bp.route("/api/player_dates/<player_id>")
+def get_dates_player(player_id):
+    db = get_db()
+    dates_out = db.execute(
+        "SELECT DISTINCT session_date as session_date"
+            " FROM model_results"
+            " WHERE player_id = ?"
+            " ORDER BY session_date DESC",
+            (player_id,)
+    ).fetchall()
+    dates =[]
+    for row in dates_out:
+      dates.append({"session_date":row[0]})
+    return jsonify(dates)

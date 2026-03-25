@@ -12,11 +12,11 @@ function App() {
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
       <h1>BMS Injury Prediction Model</h1>
-      {view === "player_overview" && <Dropdown onSelect={setSelectedValue}/>}
+      {view === "player_overview" && <Dropdown curView={view} onSelect={setSelectedValue} player_id={selectedPlayer}/>}
       {view === "player_overview" && <PlayerOverview SelectedDate={selectedValue} changeView={SetView} selectedPlayer={setSelectedPlayer}/>}
-      {view === "player_detail" && <Dropdown onSelect={setSelectedValue}/>}
+      {view === "player_detail" && <Dropdown curView={view} onSelect={setSelectedValue} player_id={selectedPlayer}/>}
       {view === "player_detail" && <PlayerDetail SelectedDate={selectedValue} changeView={SetView} player_id={selectedPlayer}/>}
-      {view === "player_detail" && <PlayerTrend changeView={SetView} player_id={selectedPlayer}/>}
+      {view === "player_detail" && <PlayerTrend SelectedDate={selectedValue} player_id={selectedPlayer}/>}
     </div>
   );
 }
