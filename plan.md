@@ -1,4 +1,4 @@
-### Discussion of Plan for Project 
+### Project Plan
 Updated: 3/24/2026
 
 #### Overall Goals
