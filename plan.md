@@ -1,4 +1,5 @@
-### Discussion of Plan for Project
+### Discussion of Plan for Project 
+Updated: 3/24/2026
 
 #### Overall Goals
 The primary goal for this project is two-fold.  
@@ -20,6 +21,18 @@ Autoregressive Model (AR)
 In this model, the output variable depends on it's own previous values.  The thought here is that for each player, the entire collection of their data up to that point in the season could be used to help assess their current injury risk.  
 The sklearn framework has an ARIMA (AutoRegressive Integrated Moving Average) model that could work well for this type of problem.
 
-#### V2 (Second Half of Semester)
-Once I have the initial framework of the models built, I plan orient my focus on effectively reporting model results.  Of course, I will continue to fine-tune the models throughout the semester, and will be looking for opportunities to improve on the initial results. 
-For my stakeholders, it's important that refreshing the model on the latest GPS data and interpreting model results is easy to do.  I'd like to build some sort of front end output that can be used to host and automatically refresh results and visualizations.  
+#### V2 (Updated 3/24/26)
+The injury prediction logistic regression model described above has been fully implemented.  While there is some continued iteration and fine-tuning of this model, the results are satisfactory, and I've shifted my focus onto the data visualization and front-end reporting.  Possible implementation of an autoregressive model has been deprioritized because that would likely require me to train the model on each individual player's data, and would be difficult to refresh in upcoming seasons due to lack of timely access to the injury data.  My hope is that the athletic training staff can compile and share injury data at the completion of each season, and we can re-train the logistic regression model on the growing dataset.
+
+For the front-end reporting, I'm leveraging many of the same tools and methods that we've learned thus far in CS5610.  After the model runs, I've developed a script to create a SQLite database with the model results.  I'm then using Flask to connect to this database and develop routes that will then be used to gather data for the front-end reporting and data visualizations.  I'm using Vite and React components on the front-end, and plan on building out 3 main pages (Team Overview, Player Overview, Player Detail).  Initial Implementations of Player Overview and Player Detail are complete, but I have several other features/plots/results I'd like to include, and need to do some work on the formatting and styling.  
+
+My other focuses in the remaining weeks of the semester are to build out a process to refresh the data and model results.  I'm looking into whether this could be possible from the front-end itself.  It would be nice to have my stakeholders be able to refresh everything while only interacting with the webpage.  Either way, having as simple a process as possible for refreshing the data and reporting is a key focus.  
+
+I also need to figure out how to host the web page (likely Github pages).  Currently the page is just being hosted locally.  
+
+I'm working to schedule 2-3 more stakeholder meetings for the remainder of the semester.  I have plans to meet with stakeholders the week of 3/22.  Topics to discuss are...
+* Reporting outputs & requests
+* Web page styling
+* Data & model refresh process
+* Cadence for availability of future injury data and data requirements for model compatibility
+* Logistic Regression model fine-tuning
