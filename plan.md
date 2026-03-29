@@ -30,6 +30,8 @@ My other focuses in the remaining weeks of the semester are to build out a proce
 
 I also need to figure out how to host the web page (likely Github pages).  Currently the page is just being hosted locally.  
 
+Lastly, I plan to add more documentation, discussion, and results to the repository.  I'm currently planning to add a data_processing.md and an analysis.md file with this information.  
+
 I'm working to schedule 2-3 more stakeholder meetings for the remainder of the semester.  I have plans to meet with stakeholders the week of 3/22.  Topics to discuss are...
 * Reporting outputs & requests
 * Web page styling
