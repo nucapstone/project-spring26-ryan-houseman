@@ -1,56 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-export default function Dropdown({curView, onSelect, player_id}) {
-  const [options, setData] = useState([]);
-  const [selected, setSelected] = useState("2025-11-22");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+export default function Dropdown({ curView, onSelect, selectedDate, player_id, data }) {
 
-  let dates_url;
-  if (curView === "player_overview") {
-    dates_url = "http://127.0.0.1:5000/api/dates";
-  } else {
-    dates_url = `http://127.0.0.1:5000/api/player_dates/${encodeURIComponent(player_id)}`;
-  }
+  const options = useMemo(() => {
+    const sortedDates = (arr) =>
+      [...new Set(arr.map(item => item.session_date))].sort().reverse();
 
-  useEffect(() => {
-      fetch(dates_url)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((json) => {
-          setData(json);
-          setLoading(false);
-        })
-        .catch((err) => {
-          setError(err.message);
-          setLoading(false);
-        });
-    }, []);
-  
-    if (loading) return <p>Loading data...</p>;
-    if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
+    if (curView === "player_detail" && player_id) {
+      const playerData = data.filter(item => String(item.player_id) === String(player_id));
+      return sortedDates(playerData);
+    }
+
+    return sortedDates(data);
+  }, [curView, player_id, data]);
+
+  // If the current selectedDate isn't in the new options list, fall back to latest
+  const value = options.includes(selectedDate) ? selectedDate : options.at(0);
 
   return (
     <div>
       <label htmlFor="dropdown">Choose an option: </label>
       <select
         id="dropdown"
-        value={selected}
-        onChange={(e) => {
-          const value = e.target.value;
-          setSelected(value);
-          onSelect(value);
-        }}
+        value={value}
+        onChange={(e) => onSelect(e.target.value)}
       >
         <option value="">-- Select --</option>
         {options.map((opt) => (
-          <option key={opt.id} value={opt.id}>
-            {opt.session_date}
-          </option>
+          <option key={opt} value={opt}>{opt}</option>
         ))}
       </select>
     </div>

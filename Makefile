@@ -4,8 +4,8 @@ data_prep:
 model:
 	python src/logistic_regression.py
 
-db:
-	python reporting/create_db.py
+rpt_data:
+	python reporting/rpt_data_setup.py
 
 server:
 	cd reporting/server; flask --app app run --port 5000

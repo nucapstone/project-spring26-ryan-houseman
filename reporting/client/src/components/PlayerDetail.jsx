@@ -1,32 +1,6 @@
-import { useEffect, useState } from "react";
+export default function PlayerDetail({SelectedDate, changeView, player_id, data}) {
 
-export default function PlayerDetail({SelectedDate, changeView, player_id}) {
-  const [player, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-      const facility_url = `http://127.0.0.1:5000/api/player_detail/${encodeURIComponent(player_id)}/${encodeURIComponent(SelectedDate)}`;
-      fetch(facility_url)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((json) => {
-          setData(json);
-          setLoading(false);
-        })
-        .catch((err) => {
-          setError(err.message);
-          setLoading(false);
-        });
-    }, [player_id,SelectedDate]);
-  
-    if (loading) return <p>Loading data...</p>;
-    if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
-
+  const player = data.find(item => item.session_date === SelectedDate && item.player_id === player_id);
 
   return (
     <div>

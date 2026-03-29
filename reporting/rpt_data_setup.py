@@ -4,9 +4,10 @@
 from pathlib import Path
 import numpy as np
 import pandas as pd
+import json
 
-import sqlite3
-from sqlite3 import Error
+# import sqlite3
+# from sqlite3 import Error
 
 #################################################################################
 # Repository Folders
@@ -14,6 +15,7 @@ src = Path(__file__).resolve().parent
 root = src.parent
 data_dir = root / 'data'
 rpt_dir = root / 'reporting'
+front_end_data = root / 'reporting/client/src/data'
 
 #################################################################################
 # Upload Model Results
@@ -60,44 +62,54 @@ rslts_df['session_date'] = pd.to_datetime(rslts_df['session_date'],format='%Y-%m
 rslts_df['session_date'] = rslts_df['session_date'].dt.strftime('%Y-%m-%d')
 rslts_df = rslts_df[['player_id','player_name','session_date','overuse_injury_day','injury_predicted_prob','injury_prediction','injury_flag','injury_flag_cnt','predicted_injury_flag_rate']]
 
+##################################################################################
+# Create JSON Array from Reporting Results
+
+# Convert DataFrame to JSON string (array of objects)
+json_rpt1 = rslts_df.to_json(orient='records')
+rpt1_out = front_end_data / 'rpt1.json'
+
+with open(rpt1_out, "w") as f:
+    f.write(json_rpt1)
+
 #################################################################################
 
-# Initialize Database 
-print('\nInitialize Database and populate with Model Results')
-sql_file = rpt_dir / 'schema.sql'
-with open(sql_file, 'r', encoding='utf-8') as f:
-            sql_script = f.read()
-db_path = rpt_dir / 'server/bms_gps.db'
-conn = sqlite3.connect(db_path)
-cursor = conn.cursor()
-cursor.executescript(sql_script)
+# # Initialize Database 
+# print('\nInitialize Database and populate with Model Results')
+# sql_file = rpt_dir / 'schema.sql'
+# with open(sql_file, 'r', encoding='utf-8') as f:
+#             sql_script = f.read()
+# db_path = rpt_dir / 'server/bms_gps.db'
+# conn = sqlite3.connect(db_path)
+# cursor = conn.cursor()
+# cursor.executescript(sql_script)
 
-# Commit changes and close connection
-conn.commit()
-conn.close()
+# # Commit changes and close connection
+# conn.commit()
+# conn.close()
 
-def populate_db_from_df(db_path, table_name,df):
-  try:
-        print('Connect to Database')
-        # Connect to SQLite database
-        conn = sqlite3.connect(db_path)
+# def populate_db_from_df(db_path, table_name,df):
+#   try:
+#         print('Connect to Database')
+#         # Connect to SQLite database
+#         conn = sqlite3.connect(db_path)
 
-        # Append data to the table
-        df.to_sql(table_name, conn, if_exists='append', index=False)
+#         # Append data to the table
+#         df.to_sql(table_name, conn, if_exists='append', index=False)
 
-        inserted_rows = len(df)
-        print(f"Successfully inserted {inserted_rows} rows into '{table_name}'.")
-        return None
+#         inserted_rows = len(df)
+#         print(f"Successfully inserted {inserted_rows} rows into '{table_name}'.")
+#         return None
 
-  except Error as e:
-      print(f"SQLite error: {e}")
-      return
+#   except Error as e:
+#       print(f"SQLite error: {e}")
+#       return
 
-populate_db_from_df(db_path,'model_results',rslts_df)
+# populate_db_from_df(db_path,'model_results',rslts_df)
 
 #################################################################################
 # Save results to Data folder
 
 print('\nSave Database Input to CSV')
-db_file = data_dir / 'db_prep.csv'
+db_file = data_dir / 'rpt_prep.csv'
 rslts_df.to_csv(db_file,index=False)

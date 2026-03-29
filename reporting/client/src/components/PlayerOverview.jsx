@@ -1,12 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-
-
-export default function HospitalSearch({SelectedDate, changeView,selectedPlayer}) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export default function HospitalSearch({SelectedDate, changeView,selectedPlayer, data}) {
   const [player_id, setPlayer] = useState("");
+
+  const filtered_data = data.filter(item => item.session_date === SelectedDate).sort((a, b) => b.predicted_injury_flag_rate - a.predicted_injury_flag_rate);
 
 
   const getRowStyle = (predicted_injury_flag_rate) => {
@@ -20,29 +17,6 @@ export default function HospitalSearch({SelectedDate, changeView,selectedPlayer}
       return { backgroundColor: "#850F6F", color:"#F5F5F5"}; 
     }
   };
-
-  useEffect(() => {
-      const state_url = `http://127.0.0.1:5000/api/model_results/${encodeURIComponent(SelectedDate)}`;
-      fetch(state_url)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((json) => {
-          setData(json);
-          setLoading(false);
-        })
-        .catch((err) => {
-          setError(err.message);
-          setLoading(false);
-        });
-    }, [SelectedDate]);
-  
-    if (loading) return <p>Loading data...</p>;
-    if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
-
   return (
     <div>
       <h3>BMS Player Overview - {SelectedDate} </h3>
@@ -57,7 +31,7 @@ export default function HospitalSearch({SelectedDate, changeView,selectedPlayer}
           </tr>
         </thead>
         <tbody>
-          {data.map((dp) => (
+          {filtered_data.map((dp) => (
             <tr key={dp.player_id} style={getRowStyle(dp.predicted_injury_flag_rate)} onClick={() => {
               changeView("player_detail");
               setPlayer(dp.player_id);
