@@ -1,3 +1,11 @@
-data/actual/
-reporting/client/src/data/
+data/actual/*
+!data/actual/.gitkeep
+figures/eda/actual/*
+!figures/eda/actual/.gitkeep
+figures/dimensionality/reduction/actual/*
+!figures/dimensionality/reduction/actual/.gitkeep
+figures/results/actual/*
+!figures/results/actual/.gitkeep
+reporting/client/src/data/*
+!reporting/client/src/data/.gitkeep
 reporting/client/node_modules/

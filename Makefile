@@ -1,3 +1,6 @@
+demo_data:
+	python src/demo_setup.py
+
 data_prep:
 	python src/data_prep.py
 
@@ -9,4 +12,10 @@ rpt_data:
 
 run_dev: 
 	cd reporting/client; npm run dev
+
+eda:
+	python src/eda.py
+
+dim_reduct:
+	python src/dimensionality_reduction.py
 

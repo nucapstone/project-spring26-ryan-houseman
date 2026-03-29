@@ -13,9 +13,23 @@ import json
 # Repository Folders
 src = Path(__file__).resolve().parent
 root = src.parent
-data_dir = root / 'data'
+data_dir_actual = root / 'data/actual'
+data_dir_demo = root / 'data/demo'
 rpt_dir = root / 'reporting'
 front_end_data = root / 'reporting/client/src/data'
+
+# Check if there is any actual data to use, otherwise use the demo data
+# if os.path.isdir(data_dir_actual) and os.listdir(data_dir_actual):
+#     data_dir = data_dir_actual
+#     demo=False
+# else:
+#     data_dir = data_dir_demo
+#     demo=True
+
+#######################################
+# Test Demo Data
+data_dir = data_dir_demo
+demo=True
 
 #################################################################################
 # Upload Model Results

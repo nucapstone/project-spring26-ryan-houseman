@@ -29,7 +29,26 @@ player_colors = {
     "Oliver King":"#B3B3B3",
     "Jasper Peters":"#66C2A5",
     "Jonathan Perez":"#FC8D62",
-    "Patrick Ritter":"#8DA0CB"
+    "Patrick Ritter":"#8DA0CB",
+    "Player A":"#66C2A5",
+    "Player B":"#FC8D62",
+    "Player C":"#8DA0CB",
+    "Player D":"#E78AC3",
+    "Player E":"#A6D854",
+    "Player F":"#FFD92F",
+    "Player G":"#E5C494",
+    "Player H":"#B3B3B3",
+    "Player I":"#66C2A5",
+    "Player J":"#FC8D62",
+    "Player K":"#8DA0CB",
+    "Player L":"#E78AC3",
+    "Player M":"#A6D854",
+    "Player N":"#FFD92F",
+    "Player O":"#E5C494",
+    "Player P":"#B3B3B3",
+    "Player Q":"#66C2A5",
+    "Player R":"#FC8D62",
+    "Player S":"#8DA0CB" 
 }
 
 match_colors = {
@@ -46,5 +65,9 @@ position_colors = {
     "Centre Attacking Midfielder":"#FFD92F",
     "Centre Midfielder":"#E5C494",
     "Right Back":"#B3B3B3",
-    "Centre Defensive Midfielder":"#66C2A5"
+    "Centre Defensive Midfielder":"#66C2A5",
+    "Outside Back":"#FC8D62",
+    "Outside Midfielder":"#8DA0CB",
+    "Center Midfielder":"#E78AC3",
+    "Center Back":"#A6D854"
 }

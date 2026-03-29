@@ -11,7 +11,7 @@ import pandas as pd
 #######################################################################################################
 # EDA 
 
-def bms_scatter(dataset,xvar,yvar,hue,plot_title,xlab,ylab,save_fig,fig_name,show_means):
+def gps_scatter(dataset,xvar,yvar,hue,plot_title,xlab,ylab,save_fig,fig_name,show_means):
     # Build Scatter Plot
     plt.figure(figsize=(8,6))
     if hue != 'None':
@@ -55,7 +55,7 @@ def facet_barplot(dataset,agg,metric,cmap,estimator,title,axis_label,save_fig,fi
         g.savefig(fig_name)
     return
 
-def bms_lineplot(dataset,yvar,hue,plot_title,xlab,ylab,save_fig,fig_name,show_mean,highlight_player,highlight_injury,colors):
+def gps_lineplot(dataset,yvar,hue,plot_title,xlab,ylab,save_fig,fig_name,show_mean,highlight_player,highlight_injury,colors):
     # Build Scatter Plot
     plt.figure(figsize=(8,6))
     if hue == 'session_type' or hue == 'position':

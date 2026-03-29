@@ -17,37 +17,51 @@ import matplotlib.pyplot as plt
 # Repository Folders
 src = Path(__file__).resolve().parent
 root = src.parent
-data_dir = root / 'data'
+data_dir_actual = root / 'data/actual'
+data_dir_demo = root / 'data/demo'
+
+# Check if there is any actual data to use, otherwise use the demo data
+# if os.path.isdir(data_dir_actual) and os.listdir(data_dir_actual):
+#     data_dir = data_dir_actual
+#     demo=False
+# else:
+#     data_dir = data_dir_demo
+#     demo=True
+
+#######################################
+# Test Demo Data
+data_dir = data_dir_demo
+demo=True
 
 #################################################################################
 # Upload Raw GPS Data
 print('Upload Combined Dataset')
 # Raw GPS Data
-bms_data_file = data_dir / 'bms_data_2026.csv'
-bms_data = pd.read_csv(bms_data_file)
+gps_data_file = data_dir / 'prepped_data.csv'
+gps_data = pd.read_csv(gps_data_file)
 
 
 #################################################################################
 # Run PCA on GPS Data
 # GPS Columns without Encoders
-pca_cols2 = bms_data[["duration","load","distance","yards_per_minute","high_intensity_yards","high_intensity_events","sprint_distance","sprints","top_speed","avg_speed",
+pca_cols2 = gps_data[["duration","load","distance","yards_per_minute","high_intensity_yards","high_intensity_events","sprint_distance","sprints","top_speed","avg_speed",
                      "accelerations","decelerations","percent_max_speed"
                      ]]
 
 print('PCA')
 
-bms_scaled = StandardScaler().fit_transform(pca_cols2)
+gps_scaled = StandardScaler().fit_transform(pca_cols2)
 pca = PCA(n_components=5)
-pca_trnsfrm = pca.fit_transform(bms_scaled)
+pca_trnsfrm = pca.fit_transform(gps_scaled)
 
 model_data = pd.DataFrame(pca_trnsfrm)
 model_data.columns = ['PCA1','PCA2','PCA3','PCA4','PCA5']
 
 # Several Possible Target Variables - Begin with predicting overuse injuries in the upcoming week
-model_data['injury_flag'] = bms_data['overuse_injury_upcoming_week']
+model_data['injury_flag'] = gps_data['overuse_injury_upcoming_week']
 
 #Add in player variables and dates to include in reporting output
-model_data[['player_id','player_name','overuse_injury_day','date']] = bms_data[['player_id','player_name','overuse_injury_day','date']]
+model_data[['player_id','player_name','overuse_injury_day','date']] = gps_data[['player_id','player_name','overuse_injury_day','date']]
 
 print(model_data.head())
 
@@ -88,7 +102,10 @@ y_prob = model.predict_proba(X_test)
 
 # Make predictions 
 # Default of 50% threshold is too high, test various & get stakeholder feedback on sensitivity
-custom_threshold = 0.04
+if demo: 
+    custom_threshold = 0.11
+else:
+    custom_threshold = 0.04
 #y_pred = model.predict(X_test) - Uses 0.5 Threshold
 y_pred = (y_prob[:,1] >= custom_threshold).astype(int)
 print('\nData Points predicted to have injuries')
@@ -114,6 +131,10 @@ output_data_full['injury_flag'] = y_test
 
 ######################################
 # Plotting Output Results
+if demo:
+    figures_prefix = 'figures/results/demo/'
+else:
+    figures_prefix = 'figures/results/actual/'
 
 # Convert date to datetime, and sort appropriately
 output_data_full['date'] = pd.to_datetime(output_data_full['date'])
@@ -127,7 +148,7 @@ from color_palette import player_colors, match_colors, position_colors #type: ig
 for player in output_data['player_name'].unique():
     print(f'\nPlottin results for: {player}')
     lname = player.split(' ',1)[1].lower().replace(' ','_')
-    output_lineplot(output_data,'player_name','Trend of Injury Likelihood','Date','Injury Likelihood',True,f'figures/results/results_injury_likelihood_{lname}.png',player,player_colors,custom_threshold)
+    output_lineplot(output_data,'player_name','Trend of Injury Likelihood','Date','Injury Likelihood',True,f'{figures_prefix}results_injury_likelihood_{lname}.png',player,player_colors,custom_threshold)
 
 
 ####################################################################

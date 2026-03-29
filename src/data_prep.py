@@ -4,11 +4,26 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
+import os
 
 # Repository Folders
 src = Path(__file__).resolve().parent
 root = src.parent
-data_dir = root / 'data'
+data_dir_actual = root / 'data/actual'
+data_dir_demo = root / 'data/demo'
+
+# Check if there is any actual data to use, otherwise use the demo data
+# if os.path.isdir(data_dir_actual) and os.listdir(data_dir_actual):
+#     data_dir = data_dir_actual
+#     demo=False
+# else:
+#     data_dir = data_dir_demo
+#     demo=True
+
+#######################################
+# Test Demo Data
+data_dir = data_dir_demo
+demo=True
 
 ############################################################################
 # Upload Raw GPS Data
@@ -48,36 +63,49 @@ raw_injuries_file = data_dir / 'injury_data_raw.csv'
 
 injuries_raw = pd.read_csv(raw_injuries_file)
 
-# Drop unneccesary columsn
-injuries = injuries_raw.drop(['Sport','Body Part','Injury Side','Injury Site','Sport Activity','Injury'],axis=1)
+########################################################################################
+# # Drop unneccesary columsn
+# injuries = injuries_raw.drop(['Sport','Body Part','Injury Side','Injury Site','Sport Activity','Injury'],axis=1)
 
-# Rename Columns
-injuries.rename(columns={'Patient':'player_name_raw','Mechanism':'mechanism',
+# # Rename Columns
+# injuries.rename(columns={'Patient':'player_name_raw','Mechanism':'mechanism',
+#                                'Injury Date':'injury_date'}, inplace=True)
+
+# # Convert Injury Date to DateTime
+# injuries['injury_date'] = pd.to_datetime(injuries['injury_date'],format='%Y-%m-%d')
+
+# # Tag Injuries as Overuse Related
+# def overuse_flag(mechanism):
+#     if mechanism == 'Agility Movement':
+#         return 'Y'
+#     if mechanism == 'Inversion':
+#         return 'Y'
+#     if mechanism == 'Lunging':
+#         return 'Y'
+#     if mechanism == 'Overuse':
+#         return 'Y'
+#     if mechanism == 'Cutting / Change of Direction':
+#         return 'Y'
+#     if mechanism == 'Overstretching':
+#         return 'Y'
+#     if mechanism == 'Axial Loading':
+#         return 'Y'
+#     else:
+#         return 'N'
+
+# injuries['overuse_flag'] = injuries['mechanism'].apply(overuse_flag)
+############################################################################################
+# Updates to scructure of raw injury data
+# # Rename Columns
+injuries = injuries_raw.copy()
+
+injuries.rename(columns={'Patient':'player_name_raw','Overuse Injury':'overuse_flag',
                                'Injury Date':'injury_date'}, inplace=True)
 
 # Convert Injury Date to DateTime
 injuries['injury_date'] = pd.to_datetime(injuries['injury_date'],format='%Y-%m-%d')
 
-# Tag Injuries as Overuse Related
-def overuse_flag(mechanism):
-    if mechanism == 'Agility Movement':
-        return 'Y'
-    if mechanism == 'Inversion':
-        return 'Y'
-    if mechanism == 'Lunging':
-        return 'Y'
-    if mechanism == 'Overuse':
-        return 'Y'
-    if mechanism == 'Cutting / Change of Direction':
-        return 'Y'
-    if mechanism == 'Overstretching':
-        return 'Y'
-    if mechanism == 'Axial Loading':
-        return 'Y'
-    else:
-        return 'N'
-
-injuries['overuse_flag'] = injuries['mechanism'].apply(overuse_flag)
+############################################################################################
 
 # Fix Player Names
 def player_name_update(name):
@@ -85,9 +113,14 @@ def player_name_update(name):
     player_name = first_last[1][1:] + ' ' + first_last[0]
     return player_name
 
-injuries['player_name'] = injuries['player_name_raw'].apply(player_name_update)
-injuries = injuries.drop('player_name_raw',axis=1)
-injuries['injury_flag'] = 1
+if not demo:
+    injuries['player_name'] = injuries['player_name_raw'].apply(player_name_update)
+    injuries = injuries.drop('player_name_raw',axis=1)
+    injuries['injury_flag'] = 1
+else:
+    injuries['player_name'] = injuries['player_name_raw']
+    injuries = injuries.drop('player_name_raw',axis=1)
+    injuries['injury_flag'] = 1
 
 # print(injuries.head())
 # print(injuries.shape)
@@ -192,7 +225,8 @@ dataset = pd.concat([dataset,encoded_df],axis=1)
 # Rename Columns
 dataset.rename(columns={'position_Centre Attacking Midfielder':'position_center_attacking_midfielder','position_Centre Back':'position_center_back','position_Centre Defensive Midfielder':'position_center_defensive_midfielder',
                         'position_Centre Midfielder':'position_center_midfielder','position_Goalkeeper':'position_goalkeeper', 'position_Left Back':'position_left_back',
-                        'position_Right Back':'position_right_back','position_Right Midfielder':'position_right_midfielder','position_Striker':'position_striker',
+                        'position_Right Back':'position_right_back','position_Right Midfielder':'position_right_midfielder','position_Striker':'position_striker', 
+                        'position_Center Back':'position_center_back', 'position_Center Midfielder':'position_center_midfielder','position_Outside Back':'position_outside_back', 'position_Outside Midfielder':'position_outside_midfielder',
                         'session_type_Match Session':'session_type_match','session_type_Training Session':'session_type_training'}, inplace=True)
 
 # Create player IDs
@@ -214,7 +248,7 @@ print(description)
 
 ###########################################################################
 print('\nSave Combinded Data to CSV')
-cmb_file = data_dir / 'bms_data_2026.csv'
+cmb_file = data_dir / 'prepped_data.csv'
 dataset.to_csv(cmb_file,index=False)
 
 ###########################################################################
