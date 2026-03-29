@@ -1,2 +1,3 @@
-reporting/server/bms_gps.db
+data/actual/
+reporting/client/src/data/
 reporting/client/node_modules/
