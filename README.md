@@ -57,13 +57,13 @@ Additionally, Node.js is used for some of the front-end reporting.  This is inst
 The repository has a Makefile available to allow a user to easily step through the data pipeline for this project.  Please run the following make commands in order to reproduce the predictive model and reporting. 
 
 ```
+make demo_data    #This command runs the src/demo_setup.py file which creates a demo dataset.  If actual data is stored in the appropriate folder, the data pipeline will use the demo data.  
+
 make data_prep    #This command runs the src/data_prep.py file which joins and cleans the 2 input data files and produces data/bms_data_2026.csv
 
 make model    #This command runs src/logistic_regression.py which runs the logistic regression model, outputs plots to figures/results/ and creates data/model_results.csv
 
-make db    #This command runs reporting/create_db.py which generates a SQLite database from the model results used for the front-end reporting
-
-make server    #This command calls Flask to start the back-end server for the output webpage.  This will continue to run, so you'll need to open up a new command prompt to run the final command
+make rpt_data    #This command runs reporting/rpt_data_setup.py which generates JSON output files used for the front-end reporting
 
 # NOTE: If npm is not installed, you'll need to run npm install within the reporting/client/ directory of this repository before running the following commmand.
 make run_dev    #This command uses npm to launch the front-end output of the project
