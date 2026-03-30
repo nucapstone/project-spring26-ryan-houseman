@@ -27,6 +27,7 @@ export default function PlayerTrend({SelectedDate, player_id, data}) {
 
   const playerData = data.filter(item => item.player_id === player_id);
   if (!playerData.length) return <p>No trend data found for this player.</p>;
+  const toPercent = (val, decimals = 1) => `${(val * 100).toFixed(decimals)}%`;
 
   const labels = playerData.map(item => item.session_date);
   const values = playerData.map(item => item.injury_predicted_prob);
@@ -38,23 +39,24 @@ export default function PlayerTrend({SelectedDate, player_id, data}) {
       {
         label: SelectedDate,
         data: labels.map((_, i) => i === highlightIndex ? values[i] : null),
-        borderColor: "rgba(255, 165, 0, 1)",
-        backgroundColor: "rgba(255, 165, 0, 0.7)",
-        pointRadius: 7,
-        pointHoverRadius: 7,
+        borderColor: "#1ABC9C",
+        backgroundColor: "rgba(152, 241, 223, 1)",
+        pointRadius: 8,
+        pointHoverRadius: 8,
         showLine: false
       },
       {
         label: "Likelihood of Injury",
         data: values,
-        borderColor: "rgba(75, 192, 192, 1)",
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        borderColor: "rgba(44,62,80, 1)",
+        backgroundColor: "rgba(44,62,80, 0.2)",
         fill: false,
         tension: 0.1,
         trendlineLinear: {
-          style: "rgba(255,105,180, 0.8)",
+          colorMin: "rgba(26, 188, 156, 1)",
+          colorMax: "rgba(26, 188, 156, 1)",
           lineStyle: "solid",
-          width: 2
+          width: 3
         }
       },
     ]
@@ -62,15 +64,34 @@ export default function PlayerTrend({SelectedDate, player_id, data}) {
 
   const options = {
     responsive: true,
+    maintainAspectRatio:true,
     plugins: {
       legend: { position: "top" },
       title: { display: true, text: "Predicted Likelihood of Overuse Injury" },
-      tooltip: {enabled: true}
+      tooltip: {
+        callbacks: {
+          label: (context) => `${(context.parsed.y * 100).toFixed(1)}%`
+        },
+        enabled: true}
+    },
+    scales: {
+      x: {
+        ticks: {
+          maxTicksLimit: 8,        // limit x axis labels to 8 dates
+          maxRotation: 45,         // rotate labels to prevent overlap
+          minRotation: 45,
+        }
+      },
+      y: {
+      ticks: {
+        callback: (val) => `${(val * 100).toFixed(1)}%`  // format y axis labels too
+      }
+      }
     }
   };
 
   return (
-    <div style={{ width: '600px', margin: '0 auto' }}>
+    <div style={{ width: '80%', margin: '0 auto' }}>
       <Line data={chartData} options={options} />
     </div>
   );

@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import json
+import os
 
 # import sqlite3
 # from sqlite3 import Error
@@ -19,7 +20,8 @@ rpt_dir = root / 'reporting'
 front_end_data = root / 'reporting/client/src/data'
 
 # Check if there is any actual data to use, otherwise use the demo data
-# if os.path.isdir(data_dir_actual) and os.listdir(data_dir_actual):
+# files = [f for f in os.listdir(primary_dir) if f.endswith(".csv")]
+# if files:
 #     data_dir = data_dir_actual
 #     demo=False
 # else:
@@ -38,12 +40,16 @@ model_results_file = data_dir / 'model_results.csv'
 rslts_df = pd.read_csv(model_results_file)
 
 #################################################################################
+# Prepare Reporting Dataset - Player Overview & Detail
+print('\nPlayer Overview & Player Detail Reporting Data Generation')
 # Calculate COUNT OF Datapoints flagged in the previous week for Injury by Player
 
 rslts_df['session_date'] = pd.to_datetime(rslts_df['date'])
 rslts_df['injury_predicted_prob'] = round(rslts_df['injury_predicted_prob'],4)
 rslts_df = rslts_df.sort_values(['player_name','date'])
 
+
+# Calculate number of days in the previous week that a player was flagged for injury
 target_value = 1
 rslts_df['injury_flag_cnt'] = (
     rslts_df.groupby(['player_name'],as_index=False)
@@ -54,8 +60,9 @@ rslts_df['injury_flag_cnt'] = (
       .values
 )
 
+# Calculate # of records from the previous week
 rslts_df['cnt'] = 1
-rslts_df['record_cnt'] = (
+rslts_df['session_cnt'] = (
     rslts_df.groupby(['player_name'],as_index=False)
       .apply(lambda g: g.set_index('session_date')
                         .rolling('7D')['cnt']
@@ -65,8 +72,39 @@ rslts_df['record_cnt'] = (
 )
 
 rslts_df.drop(['cnt','date'],axis=1,inplace=True)
-rslts_df['predicted_injury_flag_rate'] = round(rslts_df['injury_flag_cnt']/rslts_df['record_cnt'],4)
-rslts_df.drop('record_cnt',axis=1,inplace=True)
+rslts_df['predicted_injury_flag_rate'] = round(rslts_df['injury_flag_cnt']/rslts_df['session_cnt'],2)
+
+
+#################################################################################
+# Calculate Freshness Metric (injury likelihood scaled by exponential distribution)
+
+lambda_decay = 0.3
+# For each row, calculate the weighted sum of injury_predicted_prob over the past 7 days
+def freshness_metric(df, date, player_id):
+    # Get the past 7 days of data for this player
+    past_7_days = df[
+        (df["player_id"] == player_id) &
+        (df["session_date"] <= date) &
+        (df["session_date"] >= date - pd.Timedelta(days=7))
+    ].copy()
+    
+    # Calculate how many days ago each row occurred
+    past_7_days["days_ago"] = (date - past_7_days["session_date"]).dt.days
+    
+    # Apply exponential decay weight
+    past_7_days["weight"] = np.exp(-lambda_decay * past_7_days["days_ago"])
+    
+    # Return weighted sum
+    return round((past_7_days["injury_predicted_prob"] * past_7_days["weight"]).sum(),2)
+
+# Apply to every row in the dataframe
+rslts_df["player_freshness"] = rslts_df.apply(
+    lambda row: freshness_metric(rslts_df, row["session_date"], row["player_id"]), axis=1
+)
+
+rslts_df["player_freshness"] = round(1000 * (1 - (rslts_df["player_freshness"] - rslts_df["player_freshness"].min()) / 
+                               (rslts_df["player_freshness"].max() - rslts_df["player_freshness"].min())),2)
+
 
 print(rslts_df.head())
 
@@ -74,7 +112,21 @@ print(rslts_df.head())
 
 rslts_df['session_date'] = pd.to_datetime(rslts_df['session_date'],format='%Y-%m-%d',errors='coerce')
 rslts_df['session_date'] = rslts_df['session_date'].dt.strftime('%Y-%m-%d')
-rslts_df = rslts_df[['player_id','player_name','session_date','overuse_injury_day','injury_predicted_prob','injury_prediction','injury_flag','injury_flag_cnt','predicted_injury_flag_rate']]
+rslts_df = rslts_df[['player_id','player_name','session_date','overuse_injury_day','injury_predicted_prob','injury_prediction','injury_flag','injury_flag_cnt','predicted_injury_flag_rate','session_cnt','player_freshness']]
+
+##################################################################################
+# Create Team Overview Reporting Dataset
+print('Team Overview Reporting Data Generation')
+team_rslts = rslts_df.groupby('session_date',as_index=False).agg({'overuse_injury_day':'sum','injury_predicted_prob':'mean','injury_prediction':'sum','injury_flag_cnt':'sum','predicted_injury_flag_rate':'mean','session_cnt':'sum','player_freshness':'mean'})
+team_rslts['team_injury_predicted_prob'] = round(team_rslts['injury_predicted_prob'],4)
+team_rslts['team_freshness'] = round(team_rslts['player_freshness'],2)
+team_rslts['team_predicted_injury_flag_rate'] = round(team_rslts['predicted_injury_flag_rate'],2)
+
+team_rslts.drop(['player_freshness','predicted_injury_flag_rate','injury_predicted_prob'],axis=1,inplace=True)
+team_rslts.rename(columns={'injury_prediction':'predicted_injuries_cnt','session_cnt':'team_session_cnt'}, inplace=True)
+
+print(team_rslts.head())
+
 
 ##################################################################################
 # Create JSON Array from Reporting Results
@@ -86,44 +138,18 @@ rpt1_out = front_end_data / 'rpt1.json'
 with open(rpt1_out, "w") as f:
     f.write(json_rpt1)
 
-#################################################################################
+json_rpt2 = team_rslts.to_json(orient='records')
+rpt2_out = front_end_data / 'rpt2.json'
 
-# # Initialize Database 
-# print('\nInitialize Database and populate with Model Results')
-# sql_file = rpt_dir / 'schema.sql'
-# with open(sql_file, 'r', encoding='utf-8') as f:
-#             sql_script = f.read()
-# db_path = rpt_dir / 'server/bms_gps.db'
-# conn = sqlite3.connect(db_path)
-# cursor = conn.cursor()
-# cursor.executescript(sql_script)
-
-# # Commit changes and close connection
-# conn.commit()
-# conn.close()
-
-# def populate_db_from_df(db_path, table_name,df):
-#   try:
-#         print('Connect to Database')
-#         # Connect to SQLite database
-#         conn = sqlite3.connect(db_path)
-
-#         # Append data to the table
-#         df.to_sql(table_name, conn, if_exists='append', index=False)
-
-#         inserted_rows = len(df)
-#         print(f"Successfully inserted {inserted_rows} rows into '{table_name}'.")
-#         return None
-
-#   except Error as e:
-#       print(f"SQLite error: {e}")
-#       return
-
-# populate_db_from_df(db_path,'model_results',rslts_df)
+with open(rpt2_out, "w") as f:
+    f.write(json_rpt2)
 
 #################################################################################
 # Save results to Data folder
+print('\nSave Reporting Data')
+rpt1_file = data_dir / 'rpt_prep_player.csv'
+rslts_df.to_csv(rpt1_file,index=False)
 
-print('\nSave Database Input to CSV')
-db_file = data_dir / 'rpt_prep.csv'
-rslts_df.to_csv(db_file,index=False)
+rpt2_file = data_dir / 'rpt_prep_team.csv'
+team_rslts.to_csv(rpt2_file,index=False)
+

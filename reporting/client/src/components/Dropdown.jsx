@@ -19,7 +19,7 @@ export default function Dropdown({ curView, onSelect, selectedDate, player_id, d
 
   return (
     <div>
-      <label htmlFor="dropdown">Choose an option: </label>
+      <label htmlFor="dropdown">Select a Date: </label>
       <select
         id="dropdown"
         value={value}

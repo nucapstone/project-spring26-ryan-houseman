@@ -15,7 +15,8 @@ data_dir_actual = root / 'data/actual'
 data_dir_demo = root / 'data/demo'
 
 # Check if there is any actual data to use, otherwise use the demo data
-# if os.path.isdir(data_dir_actual) and os.listdir(data_dir_actual):
+# files = [f for f in os.listdir(primary_dir) if f.endswith(".csv")]
+# if files:
 #     data_dir = data_dir_actual
 #     demo=False
 # else:
