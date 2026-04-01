@@ -2,8 +2,8 @@ data/actual/*
 !data/actual/.gitkeep
 figures/eda/actual/*
 !figures/eda/actual/.gitkeep
-figures/dimensionality/reduction/actual/*
-!figures/dimensionality/reduction/actual/.gitkeep
+figures/dimensionality_reduction/actual/*
+!figures/dimensionality_reduction/actual/.gitkeep
 figures/results/actual/*
 !figures/results/actual/.gitkeep
 reporting/client/src/data/*
