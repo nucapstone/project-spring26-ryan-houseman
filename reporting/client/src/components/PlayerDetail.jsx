@@ -10,7 +10,7 @@ export default function PlayerDetail({SelectedDate, changeView, player_id, data}
       <p><strong>Player ID:</strong> {player.player_id}</p>
       <p><strong>Player Name:</strong> {player.player_name}</p>
       <p><strong>Likelihood of Injury (SelectedDate):</strong> {toPercent(player.injury_predicted_prob)}</p>
-      <p><strong>Predicted Injury Flag Rate (Previous Week):</strong> {toPercent(player.predicted_injury_flag_rate)}</p>
+      <p><strong>Predicted Injury Flag Rate (Previous Week):</strong> {toPercent(player.predicted_injury_flag_rate_7d)}</p>
     </div>
   );
 }

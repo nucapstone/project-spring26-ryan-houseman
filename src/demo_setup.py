@@ -17,13 +17,14 @@ player_sample = ['Player A','Player B','Player C','Player D','Player E','Player 
 position_sample = ['Goalkeeper','Center Back','Outside Back','Center Midfielder','Outside Midfielder','Striker']
 player_positions = {player: random.choice(position_sample) for player in player_sample}
 
-dates = pd.date_range(start="2025-08-01",end="2025-11-30",freq="D")
+dates_model = pd.date_range(start="2024-08-01",end="2024-11-30",freq="D")
+dates_current = pd.date_range(start="2025-08-01",end="2025-11-30",freq="D")
 
 #########################################################################################
 # Functions for Demo Data
-def gps_demo():
+def gps_demo(dates_range,model):
     df = pd.DataFrame(
-        [(date, player, player_positions[player]) for date in dates for player in player_sample],
+        [(date, player, player_positions[player]) for date in dates_range for player in player_sample],
         columns = ["Start Date","Athlete Name","Athlete Position"]
     )
 
@@ -97,7 +98,10 @@ def gps_demo():
 
 
     print('\nSave Demo GPS Data to CSV')
-    out_file = data_dir_demo / 'gps_data_raw.csv'
+    if model:
+        out_file = data_dir_demo / 'gps_data_raw_model.csv'
+    else:
+        out_file = data_dir_demo / 'gps_data_raw_current.csv'
     df_final.to_csv(out_file,index=False)
 
     return df_final
@@ -123,9 +127,13 @@ def injury_demo(gps_data):
 
 ###########################################################################
 # Generate Demo Data
-gps_demo_df = gps_demo()
-injury_demo_df = injury_demo(gps_demo_df)
 
+# Model Data 2024
+gps_demo_df_model = gps_demo(dates_model,True)
+injury_demo_df = injury_demo(gps_demo_df_model)
+
+# Current Season 2025
+gps_demo_df_current = gps_demo(dates_current,False)
 
 
 

@@ -4,8 +4,11 @@ demo_data:
 data_prep:
 	python src/data_prep.py
 
-model:
+model_lreg:
 	python src/logistic_regression.py
+
+model_rf:
+	python src/random_forest.py
 
 rpt_data:
 	python reporting/rpt_data_setup.py

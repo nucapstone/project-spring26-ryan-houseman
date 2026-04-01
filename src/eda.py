@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
+import os
 
 from color_palette import player_colors, match_colors, position_colors #type: ignore
 
@@ -15,19 +16,23 @@ data_dir_actual = root / 'data/actual'
 data_dir_demo = root / 'data/demo'
 
 # Check if there is any actual data to use, otherwise use the demo data
-# files = [f for f in os.listdir(primary_dir) if f.endswith(".csv")]
-# if files:
-#     data_dir = data_dir_actual
-#     demo=False
-# else:
-#     data_dir = data_dir_demo
-#     demo=True
+files = [f for f in os.listdir(data_dir_actual) if f.endswith(".csv")]
+if files:
+    data_dir = data_dir_actual
+    demo=False
+else:
+    data_dir = data_dir_demo
+    demo=True
+
+if demo:
+    print('\nData Pipeline using Demo Data')
+else:
+    print('\nData Pipeline using Actual GPS & Injury Data ')
 
 #######################################
 # Test Demo Data
-data_dir = data_dir_demo
-demo=True
-
+# data_dir = data_dir_demo
+# demo=True
 ############################################################################
 # Upload Raw GPS Data
 print('Upload Combined Dataset')
@@ -79,20 +84,17 @@ facet_barplot(gps_data,aggm,'yards_per_minute',player_colors,np.mean,'Player Yar
 
 # Trend Lines
 
+###########################################################
+# DELETE?
+###########################################################
 # Bowdoin Players
-#bms_lineplot(gps_data,'yards_per_minute','player_name','Trend of Yards per Minute by Player','Date','Yards Covered per Minute',True,f'{figures_prefix}trend_yards_per_minute_ishibashi',True,'Keito Ishibashi',False,player_colors)
-#bms_lineplot(gps_data,'yards_per_minute','player_name','Trend of Yards per Minute by Player','Date','Yards Covered per Minute',True,f'{figures_prefix}trend_yards_per_minute_prince',True,'Adam Prince',True,player_colors)
+# gps_lineplot(gps_data,'yards_per_minute','player_name','Trend of Yards per Minute by Player','Date','Yards Covered per Minute',True,f'{figures_prefix}trend_yards_per_minute_ishibashi',True,'Keito Ishibashi',False,player_colors)
+# gps_lineplot(gps_data,'yards_per_minute','player_name','Trend of Yards per Minute by Player','Date','Yards Covered per Minute',True,f'{figures_prefix}trend_yards_per_minute_prince',True,'Adam Prince',True,player_colors)
 
 
 # Demo Data
-gps_lineplot(gps_data,'yards_per_minute','session_type','Trend of Yards per Minute by Session Type','Date','Yards Covered per Minute',True,f'{figures_prefix}trend_yards_per_minute_session',True,None,False,match_colors)
 gps_lineplot(gps_data,'yards_per_minute','player_name','Trend of Yards per Minute by Player','Date','Yards Covered per Minute',True,f'{figures_prefix}trend_yards_per_minute_player_a',True,'Player A',False,player_colors)
 gps_lineplot(gps_data,'yards_per_minute','player_name','Trend of Yards per Minute by Player','Date','Yards Covered per Minute',True,f'{figures_prefix}trend_yards_per_minute_player_r',True,'Player R',True,player_colors)
 
-
-##############################################################################
-
-# Dimensionality Reduction (PCA & T-SNE)
-
-
-##############################################################################
+# Lineplot Session Type
+gps_lineplot(gps_data,'yards_per_minute','session_type','Trend of Yards per Minute by Session Type','Date','Yards Covered per Minute',True,f'{figures_prefix}trend_yards_per_minute_session',True,None,False,match_colors)

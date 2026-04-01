@@ -1,27 +1,28 @@
-# Logistic Regression Model Implementation
+# Random Forest Model Implementation
 
-###########################################################################
+####################################################################################################
+
 from pathlib import Path
+import os
 import numpy as np
 import pandas as pd
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.calibration import CalibratedClassifierCV, calibration_curve
+from sklearn.model_selection import (
+    train_test_split, StratifiedKFold, RandomizedSearchCV
+)
 from sklearn.metrics import (
     roc_auc_score, brier_score_loss, log_loss,
     classification_report, RocCurveDisplay,
     precision_recall_curve, average_precision_score
 )
-from sklearn.calibration import calibration_curve
-import os
 
-import seaborn as sns
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
+
 import matplotlib.pyplot as plt
-from plotting import output_lineplot # type: ignore
-from color_palette import player_colors, match_colors, position_colors #type: ignore
-
+from scipy.stats import randint
+from sklearn.model_selection import TimeSeriesSplit
 
 #################################################################################
 # Repository Folders
@@ -30,7 +31,7 @@ root = src.parent
 data_dir_actual = root / 'data/actual'
 data_dir_demo = root / 'data/demo'
 
-# Check if there is any actual data to use, otherwise use the demo data
+#Check if there is any actual data to use, otherwise use the demo data
 files = [f for f in os.listdir(data_dir_actual) if f.endswith(".csv")]
 if files:
     data_dir = data_dir_actual
@@ -40,18 +41,16 @@ else:
     demo=True
 
 #######################################
-# Test Demo Data
+# # Test Demo Data
 # data_dir = data_dir_demo
 # demo=True
 
-#######################################
-
 # Output directory for results
 if demo:
-    os.makedirs(root / "figures/demo/logistic_regression", exist_ok=True)
+    os.makedirs(root / "figures/results/demo/random_forest", exist_ok=True)
 
 else:
-    os.makedirs(root / "figures/actual/logistic_regression", exist_ok=True)
+    os.makedirs(root / "figures/results/actual/random_forest", exist_ok=True)
 
 #################################################################################
 # Upload Raw GPS Data
@@ -60,77 +59,118 @@ print('Upload Combined Dataset')
 gps_data_file = data_dir / 'prepped_data.csv'
 gps_data = pd.read_csv(gps_data_file)
 
-
 #################################################################################
-# Run PCA on GPS Data
-# GPS Columns without Encoders
-pca_cols2 = gps_data[["duration","load","distance","yards_per_minute","high_intensity_yards","high_intensity_events","sprint_distance","sprints","top_speed","avg_speed",
+# GPS Columns for prediction Model
+model_data = gps_data[["duration","load","distance","yards_per_minute","high_intensity_yards","high_intensity_events","sprint_distance","sprints","top_speed","avg_speed",
                      "accelerations","decelerations","percent_max_speed"
-                     ]]
-
-print('PCA')
-
-gps_scaled = StandardScaler().fit_transform(pca_cols2)
-pca = PCA(n_components=8)
-pca_trnsfrm = pca.fit_transform(gps_scaled)
-
-model_data = pd.DataFrame(pca_trnsfrm)
-model_data.columns = ['PCA1','PCA2','PCA3','PCA4','PCA5','PCA6','PCA7','PCA8']
+                     ]].copy()
 
 # Several Possible Target Variables - Begin with predicting overuse injuries in the upcoming week
-model_data['injury_flag'] = gps_data['overuse_injury_upcoming_week']
-
-#Add in player variables and dates to include in reporting output
-model_data[['player_id','player_name','overuse_injury_day','date']] = gps_data[['player_id','player_name','overuse_injury_day','date']]
+model_data['injury_flag'] = gps_data['overuse_injury_upcoming_week'].copy()
 
 print(model_data.head())
 
 #################################################################################
-
 # Load dataset
 X = model_data.drop('injury_flag', axis=1)
 y = model_data['injury_flag']
 
-print('\nData Points that meet criteria for injury flag (within 1 week of an overuse injury)')
-print(sum(y))
+########################################################################
+X[['player_id','player_name','overuse_injury_day','date']] = gps_data[['player_id','player_name','overuse_injury_day','date']].copy()
+X['date'] = pd.to_datetime(X['date'],format='%Y-%m-%d')
+
+# Player ID is not included in model, so there is no need to split data based on a date cutoff
+# Split Based on Dates to avoid leakage (i.e. The model is trained on a session from week 10, but then tested on a session from week 8 for the same player)
+# cutoff_date = pd.Timestamp(X['date'].quantile(0.75))
+
+# train_mask = X['date'] < cutoff_date
+# test_mask  = X['date'] >= cutoff_date
+
+# X_train_full = X[train_mask]
+# X_test_full  = X[test_mask]
+# y_train      = y[train_mask]
+# y_test       = y[test_mask]
 
 # Split dataset into training and testing sets
-X_train_full, X_test_full, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=42)
+X_train_full, X_test_full, y_train, y_test = train_test_split(X, y, test_size=0.25, stratify=y, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, stratify=y, random_state=42)
 
 X_train = X_train_full.drop(['player_id','player_name','overuse_injury_day','date'],axis=1)
 X_test = X_test_full.drop(['player_id','player_name','overuse_injury_day','date'],axis=1)
 
-print('\nTotal Data Points (TEST)')
-print(len(y_test))
+print(X_train.head())
 
-print('\nData Points that meet criteria for injury flag (TEST)')
-print(sum(y_test))
 
-# Not Necessary since PCA was already performed
-###################################################
-# # Feature scaling
-# scaler = StandardScaler()
-# X_train = scaler.fit_transform(X_train)
-# X_test = scaler.transform(X_test)
+# ############################################################################################################
+# Hyperparameter search 
+# Use StratifiedKFold so every fold preserves the minority class ratio.
+# Score on ROC-AUC — better than accuracy for imbalanced problems.
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=19)
+cv = TimeSeriesSplit(n_splits=5)
 
-# Train the model
-model = LogisticRegression()
-model.fit(X_train, y_train)
+param_dist = {
+    "n_estimators":     randint(200, 600),
+    "max_depth":        [None, 10, 20, 30],
+    "min_samples_leaf": randint(5, 50),        # higher = smoother output probabilities
+    "min_samples_split":randint(2, 20),
+    "max_features":     ["sqrt", "log2", 0.3, 0.5],
+    "class_weight":     ["balanced_subsample"],
+    # balanced_subsample recomputes weights per bootstrap sample —
+    # often better than global "balanced" for imbalanced data
+}
 
-print('\nModel Output Injury Probabilities')
-probs = model.predict_proba(X_test)[:, 1]
+base_rf = RandomForestClassifier(n_jobs=-1, random_state=42)
+
+search = RandomizedSearchCV(
+    estimator=base_rf,
+    param_distributions=param_dist,
+    n_iter=60,             # increase for a more thorough search (costs time)
+    scoring="roc_auc",
+    cv=cv,
+    verbose=1,
+    n_jobs=-1,
+    random_state=42
+)
+search.fit(X_train, y_train)
+
+print(f"\nBest CV ROC-AUC : {search.best_score_:.4f}")
+print("Best params     :", search.best_params_)
+
+####################################
+#Best CV ROC-AUC : 0.7594
+#Best params     : {'class_weight': 'balanced_subsample', 'max_depth': 20, 'max_features': 0.5,
+#                    'min_samples_leaf': 20, 'min_samples_split': 2, 'n_estimators': 400}
+#####################################
+
+#################################################################################################################
+# Calibrate the tuned model 
+best_rf = search.best_estimator_
+
+calibrated_rf = CalibratedClassifierCV(
+    estimator=best_rf,
+    method="sigmoid",    # swap to "sigmoid" for < ~1k training samples
+    cv=5
+)
+calibrated_rf.fit(X_train, y_train)
+
+#################################################################################################################
+# Predict & build results table
+probs = calibrated_rf.predict_proba(X_test)[:, 1]  
+
+results = X_test.copy()
+results["p_hat"] = probs
+results["truth"] = y_test.values
+
+print(results.head())
 
 # Make predictions 
 # Default of 50% threshold is too high, test various & get stakeholder feedback on sensitivity
 # Recall vs Precision
 # Better recall would correctly flag more injuries with less false positives
 # Precision would miss more injuries, but have a higher overall accuracy 
-
-#######################################################################
 #################################################################################################################
 # Threshold tuning (precision / recall tradeoff) # Add to logistic regression!
 
-results = X_test.copy()
 precision, recall, thresholds = precision_recall_curve(y_test, probs)
 
 # Option A — maximise F1 (balanced tradeoff)
@@ -143,6 +183,7 @@ MIN_RECALL  = 0.50
 viable      = thresholds[recall[:-1] >= MIN_RECALL]
 thresh_r50  = viable[-1] if len(viable) else thresholds[best_f1_idx]
 
+print(f"\n── Threshold options ────────────────────────────────────")
 print(f"\n── Threshold options ────────────────────────────────────")
 print(f"  Max-F1 threshold   : {thresh_f1:.3f}")
 print(f"  ≥50% recall thresh : {thresh_r50:.3f}")
@@ -168,9 +209,9 @@ print(classification_report(y_test, results["pred"],
 #################################################################################################################
 # Plots
 if demo:
-    figures_prefix = 'figures/results/demo/logistic_regression/'
+    figures_prefix = 'figures/results/demo/random_forest/'
 else:
-    figures_prefix = 'figures/results/actual/logistic_regression/'
+    figures_prefix = 'figures/results/actual/random_forest/'
 
 fig, axes = plt.subplots(1, 3, figsize=(17, 5))
 
@@ -194,37 +235,18 @@ RocCurveDisplay.from_predictions(y_test, probs, ax=axes[2], name="Calibrated RF"
 axes[2].set_title("ROC curve")
 
 plt.tight_layout()
-plt.savefig(f"{figures_prefix}lreg_evaluation.png", dpi=150)
+plt.savefig(f"{figures_prefix}rf_imbalanced_eval.png", dpi=150)
 
-######################################################################################################
-
-# Model Outputs, display results
-print('\nModel Results Reporting')
-
-# Join back in the results and plot the outputs
-output_data_full = X_test_full
-output_data_full['injury_prediction'] = results["pred"]
-output_data_full['injury_predicted_prob'] = probs
-output_data_full['injury_flag'] = y_test
-
-######################################################################################################
-# Plotting Output Results
-if demo:
-    figures_prefix = 'figures/results/demo/logistic_regression/'
-else:
-    figures_prefix = 'figures/results/actual/logistic_regression/'
-
-# Convert date to datetime, and sort appropriately
-output_data_full['date'] = pd.to_datetime(output_data_full['date'])
-output_data_full = output_data_full.sort_values('date')
-
-output_data = output_data_full.groupby(['player_id','player_name','date','overuse_injury_day'],as_index=False).agg({'injury_predicted_prob':'mean','injury_prediction':'max','injury_flag':'max'})
-
-for player in output_data['player_name'].unique():
-    print(f'\nPlottin results for: {player}')
-    lname = player.split(' ',1)[1].lower().replace(' ','_')
-    output_lineplot(output_data,'player_name','Trend of Injury Likelihood','Date','Injury Likelihood',True,f'{figures_prefix}results_injury_likelihood_{lname}.png',player,player_colors,THRESHOLD)
-
+#####################################################################################################
+# Feature importance 
+# best_estimator_ is a single fitted RF, so .feature_importances_ is direct
+feat_imp = (
+    pd.Series(best_rf.feature_importances_, index=X_train.columns)
+    .sort_values(ascending=False)
+    .head(10)
+)
+print("\n── Top 10 Feature Importances ───────────────────────────")
+print(feat_imp.to_string())
 
 ######################################################################################################
 # Run the model on the Current Season Data
@@ -237,21 +259,10 @@ gps_data_c = pd.read_csv(gps_data_file_c)
 
 
 #################################################################################
-# Run PCA on GPS Data
-pca_cols2_c = gps_data_c[["duration","load","distance","yards_per_minute","high_intensity_yards","high_intensity_events","sprint_distance","sprints","top_speed","avg_speed",
-                     "accelerations","decelerations","percent_max_speed"
-                     ]]
-
-
-gps_scaled_c = StandardScaler().fit_transform(pca_cols2_c)
-pca = PCA(n_components=8)
-pca_trnsfrm_c = pca.fit_transform(gps_scaled_c)
-
-model_data_c = pd.DataFrame(pca_trnsfrm_c)
-model_data_c.columns = ['PCA1','PCA2','PCA3','PCA4','PCA5','PCA6','PCA7','PCA8']
-
-#Add in player variables and dates to include in reporting output
-model_data_c[['player_id','player_name','date']] = gps_data_c[['player_id','player_name','date']]
+# GPS Columns for prediction Model - Current Season
+model_data_c = gps_data_c[["duration","load","distance","yards_per_minute","high_intensity_yards","high_intensity_events","sprint_distance","sprints","top_speed","avg_speed",
+                     "accelerations","decelerations","percent_max_speed","player_id","player_name","date"
+                     ]].copy()
 
 #################################################################################
 
@@ -260,22 +271,21 @@ X_cur = model_data_c.drop(['player_id','player_name','date'],axis=1)
 
 # Current Season Predicted Probabilities
 print('\nCurrent Season Output Injury Probabilities')
-probs = model.predict_proba(X_cur)[:, 1]
+probs = calibrated_rf.predict_proba(X_cur)[:, 1]  
 
 # Current Season Reporting
 print('\nReporting Current Season')
 
 # Join back in the results and plot the outputs
-
-# Consider Re-tuning Threshold?
 model_out_full = model_data_c
-model_out_full['injury_prediction'] = (probs >= THRESHOLD).astype(int)
+model_out_full['injury_prediction'] = results["pred"]
 model_out_full['injury_predicted_prob'] = probs
 
 ######################################################################################################
 # # Save results to Data folder
 print('\nSave Model Results to CSV - Current Season')
-model_results_file = data_dir / 'model_results_lreg.csv'
+model_results_file = data_dir / 'model_results_rf.csv'
 model_out_full.to_csv(model_results_file,index=False)
+
 
 

@@ -1,4 +1,4 @@
-# File Used to Create a Database from Model Results
+# File Used to Create Front End Reporting JSON files from Model Results
 
 ###########################################################################
 from pathlib import Path
@@ -6,9 +6,6 @@ import numpy as np
 import pandas as pd
 import json
 import os
-
-# import sqlite3
-# from sqlite3 import Error
 
 #################################################################################
 # Repository Folders
@@ -20,23 +17,28 @@ rpt_dir = root / 'reporting'
 front_end_data = root / 'reporting/client/src/data'
 
 # Check if there is any actual data to use, otherwise use the demo data
-# files = [f for f in os.listdir(primary_dir) if f.endswith(".csv")]
-# if files:
-#     data_dir = data_dir_actual
-#     demo=False
-# else:
-#     data_dir = data_dir_demo
-#     demo=True
+files = [f for f in os.listdir(data_dir_actual) if f.endswith(".csv")]
+if files:
+    data_dir = data_dir_actual
+    demo=False
+else:
+    data_dir = data_dir_demo
+    demo=True
 
 #######################################
 # Test Demo Data
-data_dir = data_dir_demo
-demo=True
+# data_dir = data_dir_demo
+# demo=True
+
+################################################################################
+# Model Choice
+# Use logistic regression for now, but there is evidence random forests are better
+model_input = 'model_results_lreg.csv'
 
 #################################################################################
 # Upload Model Results
 print('Upload Model Results')
-model_results_file = data_dir / 'model_results.csv'
+model_results_file = data_dir / model_input
 rslts_df = pd.read_csv(model_results_file)
 
 #################################################################################
@@ -51,7 +53,7 @@ rslts_df = rslts_df.sort_values(['player_name','date'])
 
 # Calculate number of days in the previous week that a player was flagged for injury
 target_value = 1
-rslts_df['injury_flag_cnt'] = (
+rslts_df['injury_flag_cnt_7d'] = (
     rslts_df.groupby(['player_name'],as_index=False)
       .apply(lambda g: g.set_index('session_date')
                         .rolling('7D')['injury_prediction']
@@ -62,7 +64,7 @@ rslts_df['injury_flag_cnt'] = (
 
 # Calculate # of records from the previous week
 rslts_df['cnt'] = 1
-rslts_df['session_cnt'] = (
+rslts_df['session_cnt_7d'] = (
     rslts_df.groupby(['player_name'],as_index=False)
       .apply(lambda g: g.set_index('session_date')
                         .rolling('7D')['cnt']
@@ -72,7 +74,7 @@ rslts_df['session_cnt'] = (
 )
 
 rslts_df.drop(['cnt','date'],axis=1,inplace=True)
-rslts_df['predicted_injury_flag_rate'] = round(rslts_df['injury_flag_cnt']/rslts_df['session_cnt'],2)
+rslts_df['predicted_injury_flag_rate_7d'] = round(rslts_df['injury_flag_cnt_7d']/rslts_df['session_cnt_7d'],2)
 
 
 #################################################################################
@@ -112,18 +114,18 @@ print(rslts_df.head())
 
 rslts_df['session_date'] = pd.to_datetime(rslts_df['session_date'],format='%Y-%m-%d',errors='coerce')
 rslts_df['session_date'] = rslts_df['session_date'].dt.strftime('%Y-%m-%d')
-rslts_df = rslts_df[['player_id','player_name','session_date','overuse_injury_day','injury_predicted_prob','injury_prediction','injury_flag','injury_flag_cnt','predicted_injury_flag_rate','session_cnt','player_freshness']]
+rslts_df = rslts_df[['player_id','player_name','session_date','injury_predicted_prob','injury_prediction','injury_flag_cnt_7d','predicted_injury_flag_rate_7d','session_cnt_7d','player_freshness']]
 
 ##################################################################################
 # Create Team Overview Reporting Dataset
 print('Team Overview Reporting Data Generation')
-team_rslts = rslts_df.groupby('session_date',as_index=False).agg({'overuse_injury_day':'sum','injury_predicted_prob':'mean','injury_prediction':'sum','injury_flag_cnt':'sum','predicted_injury_flag_rate':'mean','session_cnt':'sum','player_freshness':'mean'})
+team_rslts = rslts_df.groupby('session_date',as_index=False).agg({'injury_predicted_prob':'mean','injury_prediction':'sum','injury_flag_cnt_7d':'sum','predicted_injury_flag_rate_7d':'mean','session_cnt_7d':'sum','player_freshness':'mean'})
 team_rslts['team_injury_predicted_prob'] = round(team_rslts['injury_predicted_prob'],4)
 team_rslts['team_freshness'] = round(team_rslts['player_freshness'],2)
-team_rslts['team_predicted_injury_flag_rate'] = round(team_rslts['predicted_injury_flag_rate'],2)
+team_rslts['team_predicted_injury_flag_rate_7d'] = round(team_rslts['predicted_injury_flag_rate_7d'],2)
 
-team_rslts.drop(['player_freshness','predicted_injury_flag_rate','injury_predicted_prob'],axis=1,inplace=True)
-team_rslts.rename(columns={'injury_prediction':'predicted_injuries_cnt','session_cnt':'team_session_cnt'}, inplace=True)
+team_rslts.drop(['player_freshness','predicted_injury_flag_rate_7d','injury_predicted_prob'],axis=1,inplace=True)
+team_rslts.rename(columns={'injury_prediction':'predicted_injuries_cnt','session_cnt_7d':'team_session_cnt_7d'}, inplace=True)
 
 print(team_rslts.head())
 

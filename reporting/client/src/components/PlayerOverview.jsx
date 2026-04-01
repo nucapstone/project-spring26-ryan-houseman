@@ -2,7 +2,7 @@ import { useState } from "react";
 
 export default function PlayerOverview({SelectedDate, changeView,selectedPlayer, data}) {
   const [player_id, setPlayer] = useState("");
-  const filtered_data = data.filter(item => item.session_date === SelectedDate).sort((a, b) => b.predicted_injury_flag_rate - a.predicted_injury_flag_rate);
+  const filtered_data = data.filter(item => item.session_date === SelectedDate).sort((a, b) => b.predicted_injury_flag_rate_7d - a.predicted_injury_flag_rate_7d);
   const toPercent = (val, decimals = 1) => `${(val * 100).toFixed(decimals)}%`;
 
   const getRowStyle = (predicted_injury_flag_rate) => {
@@ -31,7 +31,7 @@ export default function PlayerOverview({SelectedDate, changeView,selectedPlayer,
         </thead>
         <tbody>
           {filtered_data.map((dp) => (
-            <tr key={dp.player_id} style={getRowStyle(dp.predicted_injury_flag_rate)} onClick={() => {
+            <tr key={dp.player_id} style={getRowStyle(dp.predicted_injury_flag_rate_7d)} onClick={() => {
               changeView("player_detail");
               setPlayer(dp.player_id);
               selectedPlayer(dp.player_id);
@@ -39,7 +39,7 @@ export default function PlayerOverview({SelectedDate, changeView,selectedPlayer,
               <td className="td-cell">{dp.player_id}</td>
               <td className="td-cell">{dp.player_name}</td>
               <td className="td-cell">{toPercent(dp.injury_predicted_prob)}</td>
-              <td className="td-cell">{toPercent(dp.predicted_injury_flag_rate)}</td>
+              <td className="td-cell">{toPercent(dp.predicted_injury_flag_rate_7d)}</td>
               <td className="td-cell">{dp.session_date}</td>
             </tr>
           ))}

@@ -2,9 +2,7 @@ import pandas as pd
 from pathlib import Path
 import seaborn as sns
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import numpy as np
-import time
+import os
 
 
 from sklearn.decomposition import PCA
@@ -22,18 +20,23 @@ data_dir_demo = root / 'data/demo'
 from color_palette import player_colors, match_colors, position_colors #type: ignore
 
 # Check if there is any actual data to use, otherwise use the demo data
-# files = [f for f in os.listdir(primary_dir) if f.endswith(".csv")]
-# if files:
-#     data_dir = data_dir_actual
-#     demo=False
-# else:
-#     data_dir = data_dir_demo
-#     demo=True
+files = [f for f in os.listdir(data_dir_actual) if f.endswith(".csv")]
+if files:
+    data_dir = data_dir_actual
+    demo=False
+else:
+    data_dir = data_dir_demo
+    demo=True
+
+if demo:
+    print('\nData Pipeline using Demo Data')
+else:
+    print('\nData Pipeline using Actual GPS & Injury Data ')
 
 #######################################
 # Test Demo Data
-data_dir = data_dir_demo
-demo=True
+# data_dir = data_dir_demo
+# demo=True
 
 #################################################################################
 # Upload Raw GPS Data
@@ -127,12 +130,17 @@ dim_red_scatter(pca_out,'PCA1','PCA2','1st Principal Component','2nd Principal C
 dim_red_scatter(pca_out,'PCA1','PCA2','1st Principal Component','2nd Principal Component', pca_out['position'] ,position_colors,'GPS Data PCA - Position', f'{figures_prefix}pca_position.png',False,'None')
 dim_red_scatter(pca_out,'PCA1','PCA2','1st Principal Component','2nd Principal Component', pca_out['session_type'] ,match_colors,'GPS Data PCA - Session Type', f'{figures_prefix}pca_session_type.png',False,'None')
 
+
 # highlighted PCA
+##########################################################
+# DELETE?
+##########################################################
 # Bowdoin Player
-#dim_red_scatter(pca_out,'PCA1','PCA2','1st Principal Component','2nd Principal Component', pca_out['player_name'] ,player_colors,'GPS Data PCA - Tyler Huck', f'{figures_prefix}pca_player_huck.png',True,'Tyler Huck')
+dim_red_scatter(pca_out,'PCA1','PCA2','1st Principal Component','2nd Principal Component', pca_out['player_name'] ,player_colors,'GPS Data PCA - Tyler Huck', f'{figures_prefix}pca_player_huck.png',True,'Tyler Huck')
+
 # Demo Data
-dim_red_scatter(pca_out,'PCA1','PCA2','1st Principal Component','2nd Principal Component', pca_out['player_name'] ,player_colors,'GPS Data PCA - Player F', f'{figures_prefix}pca_player_f.png',True,'Player F')
-dim_red_scatter(pca_out,'PCA1','PCA2','1st Principal Component','2nd Principal Component', pca_out['position'] ,position_colors,'GPS Data PCA - Goalkeeper', f'{figures_prefix}pca_position_goalkeeper.png',True,'Goalkeeper')
+# dim_red_scatter(pca_out,'PCA1','PCA2','1st Principal Component','2nd Principal Component', pca_out['player_name'] ,player_colors,'GPS Data PCA - Player F', f'{figures_prefix}pca_player_f.png',True,'Player F')
+# dim_red_scatter(pca_out,'PCA1','PCA2','1st Principal Component','2nd Principal Component', pca_out['position'] ,position_colors,'GPS Data PCA - Goalkeeper', f'{figures_prefix}pca_position_goalkeeper.png',True,'Goalkeeper')
 
 
 # T-SNE Plots
@@ -140,10 +148,14 @@ dim_red_scatter(tsne_out,'TSNE1','TSNE2','T-SNE Component 1','T-SNE Component 2'
 dim_red_scatter(tsne_out,'TSNE1','TSNE2','T-SNE Component 1','T-SNE Component 2', gps_data['position'] ,position_colors,'GPS Data T-SNE - Position', f'{figures_prefix}tsne_position.png',False, 'None')
 dim_red_scatter(tsne_out,'TSNE1','TSNE2','T-SNE Component 1','T-SNE Component 2', gps_data['session_type'] ,match_colors,'GPS Data T-SNE - Sessions Type', f'{figures_prefix}tsne_session.png',False, 'None')
 
+##########################################################
+# DELETE?
+##########################################################
 # Bowdoin Player
-#dim_red_scatter(tsne_out,'TSNE1','TSNE2','T-SNE Component 1','T-SNE Component 2', gps_data['player_name'] ,player_colors,'GPS Data T-SNE - Alden Mehta', f'{figures_prefix}tsne_player_mehta.png',True,'Alden Mehta')
-# Demo Data
-dim_red_scatter(tsne_out,'TSNE1','TSNE2','T-SNE Component 1','T-SNE Component 2', gps_data['player_name'] ,player_colors,'GPS Data T-SNE - Player C', f'{figures_prefix}tsne_player_c.png',True,'Player C')
+dim_red_scatter(tsne_out,'TSNE1','TSNE2','T-SNE Component 1','T-SNE Component 2', gps_data['player_name'] ,player_colors,'GPS Data T-SNE - Alden Mehta', f'{figures_prefix}tsne_player_mehta.png',True,'Alden Mehta')
 
-dim_red_scatter(tsne_out,'TSNE1','TSNE2','T-SNE Component 1','T-SNE Component 2', gps_data['position'] ,position_colors,'GPS Data T-SNE - Left Backs', f'{figures_prefix}tsne_position_left_back.png',True,'Striker')
+# Demo Data
+# dim_red_scatter(tsne_out,'TSNE1','TSNE2','T-SNE Component 1','T-SNE Component 2', gps_data['player_name'] ,player_colors,'GPS Data T-SNE - Player C', f'{figures_prefix}tsne_player_c.png',True,'Player C')
+
+dim_red_scatter(tsne_out,'TSNE1','TSNE2','T-SNE Component 1','T-SNE Component 2', gps_data['position'] ,position_colors,'GPS Data T-SNE - Striker', f'{figures_prefix}tsne_position_striker.png',True,'Striker')
 dim_red_scatter(tsne_out,'TSNE1','TSNE2','T-SNE Component 1','T-SNE Component 2', gps_data['session_type'] ,match_colors,'GPS Data T-SNE - Match Sessions', f'{figures_prefix}tsne_session_matches.png', True, 'Match Session')

@@ -13,26 +13,34 @@ data_dir_actual = root / 'data/actual'
 data_dir_demo = root / 'data/demo'
 
 # Check if there is any actual data to use, otherwise use the demo data
-# files = [f for f in os.listdir(primary_dir) if f.endswith(".csv")]
-# if files:
-#     data_dir = data_dir_actual
-#     demo=False
-# else:
-#     data_dir = data_dir_demo
-#     demo=True
+files = [f for f in os.listdir(data_dir_actual) if f.endswith(".csv")]
+if files:
+    data_dir = data_dir_actual
+    demo=False
+else:
+    data_dir = data_dir_demo
+    demo=True
+
+if demo:
+    print('\nData Pipeline using Demo Data')
+else:
+    print('\nData Pipeline using Actual GPS & Injury Data ')
 
 #######################################
 # Test Demo Data
-data_dir = data_dir_demo
-demo=True
+# data_dir = data_dir_demo
+# demo=True
+
+####################################################################################################################################
+# 1. Model Data
+print('\nData Prep for Model Generation Data')
 
 ############################################################################
 # Upload Raw GPS Data
-print('Upload Raw GPS Data')
+print('Upload Raw GPS Data - Model')
 # Raw GPS Data
-raw_gps_file = data_dir / 'gps_data_raw.csv'
-
-
+raw_gps_file = data_dir / 'gps_data_raw_model.csv'
+# raw_gps_file = data_dir / 'gps_data_raw.csv'
 
 gps_data_raw = pd.read_csv(raw_gps_file)
 
@@ -40,6 +48,8 @@ gps_data_raw = pd.read_csv(raw_gps_file)
 # Remove records without any output metrics
 print('\nClean the Raw GPS Data')
 gps = gps_data_raw.dropna(subset=['Duration (minutes)'])
+gps = gps[gps['Session Load'] != 0].reset_index(drop=True)
+gps = gps[gps['Segment Name'] == 'Whole Session'].reset_index(drop=True)
 
 # Drop unneccesary columsn
 gps = gps.drop(['Start Time','Person ID','Athlete Groups','Week Start Date','Month Start Date','Tags','Segment Name'],axis=1)
@@ -54,7 +64,7 @@ gps.rename(columns={'Person ID':'player_id','Athlete Name':'player_name','Athlet
                                'Percentage of Max Speed':'percent_max_speed'}, inplace=True)
 
 # Convert GPS data to datetime
-gps['date'] = pd.to_datetime(gps['date'],format='%Y-%m-%d')
+gps['date'] = pd.to_datetime(gps['date'],format='mixed',dayfirst=False)
 
 ###########################################################################
 # Upload injury data
@@ -103,8 +113,10 @@ injuries = injuries_raw.copy()
 injuries.rename(columns={'Patient':'player_name_raw','Overuse Injury':'overuse_flag',
                                'Injury Date':'injury_date'}, inplace=True)
 
+print(injuries.head())
+
 # Convert Injury Date to DateTime
-injuries['injury_date'] = pd.to_datetime(injuries['injury_date'],format='%Y-%m-%d')
+injuries['injury_date'] = pd.to_datetime(injuries['injury_date'],format='mixed',dayfirst=False)
 
 ############################################################################################
 
@@ -230,9 +242,10 @@ dataset.rename(columns={'position_Centre Attacking Midfielder':'position_center_
                         'position_Center Back':'position_center_back', 'position_Center Midfielder':'position_center_midfielder','position_Outside Back':'position_outside_back', 'position_Outside Midfielder':'position_outside_midfielder',
                         'session_type_Match Session':'session_type_match','session_type_Training Session':'session_type_training'}, inplace=True)
 
+
 # Create player IDs
 unique_players = dataset['player_name'].unique()
-player_to_id = {cat: idx+100000 for idx, cat in enumerate(unique_players)}
+player_to_id = {cat: round(idx+100000,0) for idx, cat in enumerate(unique_players)}
 
 # Step 2: Map categories to IDs
 dataset['player_id'] = dataset['player_name'].map(player_to_id)
@@ -248,8 +261,84 @@ description = dataset.describe()
 print(description)
 
 ###########################################################################
+# Format Date for output
+dataset['date'] = pd.to_datetime(dataset['date']).dt.strftime('%Y-%m-%d')
+###########################################################################
 print('\nSave Combinded Data to CSV')
 cmb_file = data_dir / 'prepped_data.csv'
 dataset.to_csv(cmb_file,index=False)
+
+###########################################################################
+
+####################################################################################################################################
+# 1. Current Season Data
+print('\nData Prep for Current Season Data')
+
+############################################################################
+# Upload Raw GPS Data
+print('Upload Raw GPS Data - Current Season')
+# Raw GPS Data
+raw_gps_file_c = data_dir / 'gps_data_raw_current.csv'
+
+gps_data_raw_c = pd.read_csv(raw_gps_file_c)
+
+############################################################################
+# Remove records without any output metrics
+print('\nClean the Raw GPS Data')
+gps_c = gps_data_raw_c.dropna(subset=['Duration (minutes)'])
+gps_c = gps_c[gps_c['Session Load'] != 0].reset_index(drop=True)
+gps_c = gps_c[gps_c['Segment Name'] == 'Whole Session'].reset_index(drop=True)
+
+# Drop unneccesary columsn
+gps_c = gps_c.drop(['Start Time','Person ID','Athlete Groups','Week Start Date','Month Start Date','Tags','Segment Name'],axis=1)
+
+# Rename Columns
+gps_c.rename(columns={'Person ID':'player_id','Athlete Name':'player_name','Athlete Position':'position','Athlete Groups':'player_group',
+                               'Start Date':'date','Start Time (s)':'start_time', 'End Time (s)': 'end_time','Week Start Data':'week','Month Start Date':'month',
+                               'Session Type':'session_type','Tags':'tags','Segment Name':'segment','Duration (minutes)':'duration','Session Load':'load',
+                               'Distance (yds)':'distance','Yards per Minute (yds)':'yards_per_minute','High Intensity Running (yds)':'high_intensity_yards',
+                               'No. of High Intensity Events':'high_intensity_events','Sprint Distance (yds)':'sprint_distance','No. of Sprints':'sprints',
+                               'Top Speed (mph)':'top_speed','Avg Speed (mph)':'avg_speed','Accelerations':'accelerations','Decelerations':'decelerations',
+                               'Percentage of Max Speed':'percent_max_speed'}, inplace=True)
+
+# Convert GPS data to datetime
+gps_c['date'] = pd.to_datetime(gps_c['date'],format='mixed',dayfirst=False)
+
+dataset_c = gps_c.copy()
+#########################################################################
+# Add One Hot Encoders for Athlete Position & Session Type
+print('\nAdd One Hot Encoder for Categorical Variables (Position & Session Type)')
+
+categorical_cols = ['position','session_type']
+encoder = OneHotEncoder(sparse_output=False,handle_unknown='ignore')
+
+encoded_array = encoder.fit_transform(dataset_c[categorical_cols])
+
+encoded_cols = encoder.get_feature_names_out(categorical_cols)
+encoded_df = pd.DataFrame(encoded_array, columns=encoded_cols, index=dataset_c.index)
+
+dataset_c = pd.concat([dataset_c,encoded_df],axis=1)
+
+# Rename Columns
+dataset_c.rename(columns={'position_Centre Attacking Midfielder':'position_center_attacking_midfielder','position_Centre Back':'position_center_back','position_Centre Defensive Midfielder':'position_center_defensive_midfielder',
+                        'position_Centre Midfielder':'position_center_midfielder','position_Goalkeeper':'position_goalkeeper', 'position_Left Back':'position_left_back',
+                        'position_Right Back':'position_right_back','position_Right Midfielder':'position_right_midfielder','position_Striker':'position_striker', 
+                        'position_Center Back':'position_center_back', 'position_Center Midfielder':'position_center_midfielder','position_Outside Back':'position_outside_back', 'position_Outside Midfielder':'position_outside_midfielder',
+                        'session_type_Match Session':'session_type_match','session_type_Training Session':'session_type_training'}, inplace=True)
+
+
+# Map Player IDs using the same mapping as above
+# Step 2: Map categories to IDs
+dataset_c['player_id'] = dataset_c['player_name'].map(player_to_id)
+
+print(dataset_c.head())
+###########################################################################
+# Format Date for output
+dataset_c['date'] = pd.to_datetime(dataset_c['date']).dt.strftime('%Y-%m-%d')
+###########################################################################
+
+print('\nSave Current Season GPS Data to CSV')
+out_file = data_dir / 'prepped_data_current.csv'
+dataset_c.to_csv(out_file,index=False)
 
 ###########################################################################
