@@ -18,7 +18,7 @@ from sklearn.metrics import (
 )
 
 import warnings
-warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
+warnings.filterwarnings("ignore", message=".*sklearn.utils.parallel.delayed.*", category=UserWarning)
 
 import matplotlib.pyplot as plt
 from scipy.stats import randint
@@ -65,8 +65,10 @@ model_data = gps_data[["duration","load","distance","yards_per_minute","high_int
                      "accelerations","decelerations","percent_max_speed"
                      ]].copy()
 
-# Several Possible Target Variables - Begin with predicting overuse injuries in the upcoming week
-model_data['injury_flag'] = gps_data['overuse_injury_upcoming_week'].copy()
+# Model Target Variable - Overuse injuries in upcoming window of time (7 days or 10 days)
+target_variable = 'overuse_injury_upcoming_week'
+prediction_window = 7
+model_data['injury_flag'] = gps_data[target_variable]
 
 print(model_data.head())
 
@@ -79,21 +81,10 @@ y = model_data['injury_flag']
 X[['player_id','player_name','overuse_injury_day','date']] = gps_data[['player_id','player_name','overuse_injury_day','date']].copy()
 X['date'] = pd.to_datetime(X['date'],format='%Y-%m-%d')
 
-# Player ID is not included in model, so there is no need to split data based on a date cutoff
-# Split Based on Dates to avoid leakage (i.e. The model is trained on a session from week 10, but then tested on a session from week 8 for the same player)
-# cutoff_date = pd.Timestamp(X['date'].quantile(0.75))
-
-# train_mask = X['date'] < cutoff_date
-# test_mask  = X['date'] >= cutoff_date
-
-# X_train_full = X[train_mask]
-# X_test_full  = X[test_mask]
-# y_train      = y[train_mask]
-# y_test       = y[test_mask]
-
 # Split dataset into training and testing sets
-X_train_full, X_test_full, y_train, y_test = train_test_split(X, y, test_size=0.25, stratify=y, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, stratify=y, random_state=42)
+# Player ID is not included in model, so there is no need to split data based on a date cutoff
+X_train_full, X_test_full, y_train, y_test = train_test_split(X, y, test_size=0.25, stratify=y, random_state=37)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, stratify=y, random_state=37)
 
 X_train = X_train_full.drop(['player_id','player_name','overuse_injury_day','date'],axis=1)
 X_test = X_test_full.drop(['player_id','player_name','overuse_injury_day','date'],axis=1)
@@ -119,28 +110,22 @@ param_dist = {
     # often better than global "balanced" for imbalanced data
 }
 
-base_rf = RandomForestClassifier(n_jobs=-1, random_state=42)
+base_rf = RandomForestClassifier(n_jobs=-1, random_state=37)
 
 search = RandomizedSearchCV(
     estimator=base_rf,
     param_distributions=param_dist,
     n_iter=60,             # increase for a more thorough search (costs time)
-    scoring="roc_auc",
+    scoring="average_precision",
     cv=cv,
     verbose=1,
     n_jobs=-1,
-    random_state=42
+    random_state=37
 )
 search.fit(X_train, y_train)
 
-print(f"\nBest CV ROC-AUC : {search.best_score_:.4f}")
+print(f"\nBest CV Average Precision (AP) : {search.best_score_:.4f}")
 print("Best params     :", search.best_params_)
-
-####################################
-#Best CV ROC-AUC : 0.7594
-#Best params     : {'class_weight': 'balanced_subsample', 'max_depth': 20, 'max_features': 0.5,
-#                    'min_samples_leaf': 20, 'min_samples_split': 2, 'n_estimators': 400}
-#####################################
 
 #################################################################################################################
 # Calibrate the tuned model 
@@ -148,7 +133,7 @@ best_rf = search.best_estimator_
 
 calibrated_rf = CalibratedClassifierCV(
     estimator=best_rf,
-    method="sigmoid",    # swap to "sigmoid" for < ~1k training samples
+    method="sigmoid",
     cv=5
 )
 calibrated_rf.fit(X_train, y_train)
@@ -179,17 +164,20 @@ best_f1_idx = np.argmax(f1)
 thresh_f1   = thresholds[best_f1_idx]
 
 # Option B — target a minimum recall (e.g. catch ≥80% of positives)
-MIN_RECALL  = 0.50
+if demo:
+    MIN_RECALL = 0.30
+else:
+    MIN_RECALL  = 0.50
 viable      = thresholds[recall[:-1] >= MIN_RECALL]
-thresh_r50  = viable[-1] if len(viable) else thresholds[best_f1_idx]
+thresh_recall  = viable[-1] if len(viable) else thresholds[best_f1_idx]
 
 print(f"\n── Threshold options ────────────────────────────────────")
 print(f"\n── Threshold options ────────────────────────────────────")
 print(f"  Max-F1 threshold   : {thresh_f1:.3f}")
-print(f"  ≥50% recall thresh : {thresh_r50:.3f}")
+print(f"  ≥50% recall thresh : {thresh_recall:.3f}")
 
 # Choose which threshold to apply (swap to thresh_r80 if recall matters more)
-THRESHOLD = thresh_r50
+THRESHOLD = thresh_recall
 results["pred"] = (probs >= THRESHOLD).astype(int)
 
 print(results.head())
@@ -272,14 +260,17 @@ X_cur = model_data_c.drop(['player_id','player_name','date'],axis=1)
 # Current Season Predicted Probabilities
 print('\nCurrent Season Output Injury Probabilities')
 probs = calibrated_rf.predict_proba(X_cur)[:, 1]  
+preds = (probs >= THRESHOLD).astype(int)
 
 # Current Season Reporting
 print('\nReporting Current Season')
 
 # Join back in the results and plot the outputs
 model_out_full = model_data_c
-model_out_full['injury_prediction'] = results["pred"]
+model_out_full['injury_prediction'] = preds
 model_out_full['injury_predicted_prob'] = probs
+model_out_full['prediction_threshold'] = THRESHOLD
+model_out_full['prediction_window'] = prediction_window
 
 ######################################################################################################
 # # Save results to Data folder

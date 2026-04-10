@@ -27,7 +27,7 @@ else:
     print('\nData Pipeline using Actual GPS & Injury Data ')
 
 #######################################
-# Test Demo Data
+#Test Demo Data
 # data_dir = data_dir_demo
 # demo=True
 
@@ -39,10 +39,11 @@ print('\nData Prep for Model Generation Data')
 # Upload Raw GPS Data
 print('Upload Raw GPS Data - Model')
 # Raw GPS Data
-raw_gps_file = data_dir / 'gps_data_raw_model.csv'
+raw_gps_file = data_dir / 'gps_data_raw_2025.csv'
 # raw_gps_file = data_dir / 'gps_data_raw.csv'
 
 gps_data_raw = pd.read_csv(raw_gps_file)
+print(gps_data_raw.head())
 
 ############################################################################
 # Remove records without any output metrics
@@ -50,6 +51,8 @@ print('\nClean the Raw GPS Data')
 gps = gps_data_raw.dropna(subset=['Duration (minutes)'])
 gps = gps[gps['Session Load'] != 0].reset_index(drop=True)
 gps = gps[gps['Segment Name'] == 'Whole Session'].reset_index(drop=True)
+gps = gps[gps['Percentage of Max Speed'] != 0].reset_index(drop=True)
+gps = gps[gps['Distance (yds)'] >= 100].reset_index(drop=True)
 
 # Drop unneccesary columsn
 gps = gps.drop(['Start Time','Person ID','Athlete Groups','Week Start Date','Month Start Date','Tags','Segment Name'],axis=1)
@@ -65,6 +68,7 @@ gps.rename(columns={'Person ID':'player_id','Athlete Name':'player_name','Athlet
 
 # Convert GPS data to datetime
 gps['date'] = pd.to_datetime(gps['date'],format='mixed',dayfirst=False)
+
 
 ###########################################################################
 # Upload injury data
@@ -113,7 +117,6 @@ injuries = injuries_raw.copy()
 injuries.rename(columns={'Patient':'player_name_raw','Overuse Injury':'overuse_flag',
                                'Injury Date':'injury_date'}, inplace=True)
 
-print(injuries.head())
 
 # Convert Injury Date to DateTime
 injuries['injury_date'] = pd.to_datetime(injuries['injury_date'],format='mixed',dayfirst=False)
@@ -135,8 +138,6 @@ else:
     injuries = injuries.drop('player_name_raw',axis=1)
     injuries['injury_flag'] = 1
 
-# print(injuries.head())
-# print(injuries.shape)
 
 ###########################################################################
 
@@ -188,6 +189,7 @@ dataset = flag_injuries_time(dataset,False,prev_injury,'previous_injury')
 #Flag for Any Injury Previously Incurred Overuse During Season'
 dataset = flag_injuries_time(dataset,True,prev_injury,'previous_overuse_injury')
 
+
 #Flag for Any Injury Incurred on the same Day'
 def injury_day(row):
     if (row['date'] == row['injury_date']) and row['injury_flag'] == 1:
@@ -221,6 +223,17 @@ dataset = flag_injuries_time(dataset,False,injury_upcoming_week,'injury_upcoming
 #Flag for Any Overuse Injury Incurred within upcoming 1 week'
 dataset = flag_injuries_time(dataset,True,injury_upcoming_week,'overuse_injury_upcoming_week')
 
+#Flag for Any Injury Incurred within upcoming 10 days'
+def injury_upcoming_10d(row):
+    if (row['date'] <= row['injury_date']) and (row['injury_date'] - row['date'] <= pd.Timedelta(days=10)) and row['injury_flag'] == 1:
+        return 1
+    else:
+        return 0
+dataset = flag_injuries_time(dataset,False,injury_upcoming_10d,'injury_upcoming_10d')
+
+#Flag for Any Overuse Injury Incurred within upcoming 10 days'
+dataset = flag_injuries_time(dataset,True,injury_upcoming_10d,'overuse_injury_upcoming_10d')
+
 #########################################################################
 # Add One Hot Encoders for Athlete Position & Session Type
 print('\nAdd One Hot Encoder for Categorical Variables (Position & Session Type)')
@@ -249,11 +262,6 @@ player_to_id = {cat: round(idx+100000,0) for idx, cat in enumerate(unique_player
 
 # Step 2: Map categories to IDs
 dataset['player_id'] = dataset['player_name'].map(player_to_id)
-
-print('\nCombined Data Output')
-print(dataset.head())
-print(dataset.shape)
-
 
 #########################################################################
 print('\nCombinded Dataset Description')
@@ -288,6 +296,8 @@ print('\nClean the Raw GPS Data')
 gps_c = gps_data_raw_c.dropna(subset=['Duration (minutes)'])
 gps_c = gps_c[gps_c['Session Load'] != 0].reset_index(drop=True)
 gps_c = gps_c[gps_c['Segment Name'] == 'Whole Session'].reset_index(drop=True)
+gps_c = gps_c[gps_c['Percentage of Max Speed'] != 0].reset_index(drop=True)
+gps_c = gps_c[gps_c['Distance (yds)'] >= 100].reset_index(drop=True)
 
 # Drop unneccesary columsn
 gps_c = gps_c.drop(['Start Time','Person ID','Athlete Groups','Week Start Date','Month Start Date','Tags','Segment Name'],axis=1)

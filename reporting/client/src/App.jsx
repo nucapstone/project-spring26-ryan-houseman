@@ -4,6 +4,8 @@ import PlayerOverview from "./components/PlayerOverview";
 import PlayerDetail from "./components/PlayerDetail";
 import PlayerTrend from "./components/PlayerTrend";
 // import TeamOverview from "./components/TeamOverview";
+import PlayerKPI from "./components/PlayerKPI";
+
 import rpt1_data from './data/rpt1.json';
 
 function App() {
@@ -89,11 +91,12 @@ function App() {
       {/* Main content */}
 
     <div style={{ flex: 1, minWidth: 0, padding: "20px", fontFamily: "Arial"}}>
-      <h1>BMS Injury Prediction Model</h1>
+      <h1>Overuse Injury Prediction Model</h1>
       {view === "player_overview" && <Dropdown curView={view} onSelect={setSelectedDate} selectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data}/>}
       {view === "player_overview" && <PlayerOverview SelectedDate={SelectedDate} changeView={setView} selectedPlayer={setSelectedPlayer} data={rpt1_data}/>}
       {view === "player_detail" && <Dropdown curView={view} onSelect={setSelectedDate} selectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data}/>}
-      {view === "player_detail" && <PlayerDetail SelectedDate={SelectedDate} changeView={setView} player_id={selectedPlayer} data={rpt1_data}/>}
+      {/* {view === "player_detail" && <PlayerDetail SelectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data}/>} */}
+      {view === "player_detail" && <PlayerKPI SelectedDate={SelectedDate} player_id={selectedPlayer} playerData={rpt1_data}/>}
       {view === "player_detail" && <PlayerTrend SelectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data}/>}
       {/* {view === "team_overview" && <TeamOverview SelectedDate={SelectedDate} changeView={setView} data={rpt1_data}/>} */}
     </div>

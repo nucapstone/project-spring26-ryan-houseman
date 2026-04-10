@@ -48,10 +48,10 @@ else:
 
 # Output directory for results
 if demo:
-    os.makedirs(root / "figures/demo/logistic_regression", exist_ok=True)
+    os.makedirs(root / "figures/demo/results/logistic_regression", exist_ok=True)
 
 else:
-    os.makedirs(root / "figures/actual/logistic_regression", exist_ok=True)
+    os.makedirs(root / "figures/actual/results/logistic_regression", exist_ok=True)
 
 #################################################################################
 # Upload Raw GPS Data
@@ -68,6 +68,7 @@ pca_cols2 = gps_data[["duration","load","distance","yards_per_minute","high_inte
                      "accelerations","decelerations","percent_max_speed"
                      ]]
 
+
 print('PCA')
 
 gps_scaled = StandardScaler().fit_transform(pca_cols2)
@@ -77,11 +78,13 @@ pca_trnsfrm = pca.fit_transform(gps_scaled)
 model_data = pd.DataFrame(pca_trnsfrm)
 model_data.columns = ['PCA1','PCA2','PCA3','PCA4','PCA5','PCA6','PCA7','PCA8']
 
-# Several Possible Target Variables - Begin with predicting overuse injuries in the upcoming week
-model_data['injury_flag'] = gps_data['overuse_injury_upcoming_week']
+# Model Target Variable - Overuse injuries in upcoming window of time (7 days or 10 days)
+target_variable = 'overuse_injury_upcoming_week'
+prediction_window = 7
+model_data['injury_flag'] = gps_data[target_variable]
 
 #Add in player variables and dates to include in reporting output
-model_data[['player_id','player_name','overuse_injury_day','date']] = gps_data[['player_id','player_name','overuse_injury_day','date']]
+model_data[['player_id','player_name','overuse_injury_day','date','distance','top_speed','percent_max_speed']] = gps_data[['player_id','player_name','overuse_injury_day','date','distance','top_speed','percent_max_speed']]
 
 print(model_data.head())
 
@@ -91,14 +94,14 @@ print(model_data.head())
 X = model_data.drop('injury_flag', axis=1)
 y = model_data['injury_flag']
 
-print('\nData Points that meet criteria for injury flag (within 1 week of an overuse injury)')
+print(f'\nData Points that meet criteria for injury flag (within {prediction_window} of an overuse injury)')
 print(sum(y))
 
 # Split dataset into training and testing sets
 X_train_full, X_test_full, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=42)
 
-X_train = X_train_full.drop(['player_id','player_name','overuse_injury_day','date'],axis=1)
-X_test = X_test_full.drop(['player_id','player_name','overuse_injury_day','date'],axis=1)
+X_train = X_train_full.drop(['player_id','player_name','overuse_injury_day','date','distance','top_speed','percent_max_speed'],axis=1)
+X_test = X_test_full.drop(['player_id','player_name','overuse_injury_day','date','distance','top_speed','percent_max_speed'],axis=1)
 
 print('\nTotal Data Points (TEST)')
 print(len(y_test))
@@ -139,16 +142,19 @@ best_f1_idx = np.argmax(f1)
 thresh_f1   = thresholds[best_f1_idx]
 
 # Option B — target a minimum recall (e.g. catch ≥80% of positives)
-MIN_RECALL  = 0.50
+if demo:
+    MIN_RECALL = 0.30
+else:
+    MIN_RECALL  = 0.50
 viable      = thresholds[recall[:-1] >= MIN_RECALL]
-thresh_r50  = viable[-1] if len(viable) else thresholds[best_f1_idx]
+thresh_recall  = viable[-1] if len(viable) else thresholds[best_f1_idx]
 
 print(f"\n── Threshold options ────────────────────────────────────")
 print(f"  Max-F1 threshold   : {thresh_f1:.3f}")
-print(f"  ≥50% recall thresh : {thresh_r50:.3f}")
+print(f"  ≥50% recall thresh : {thresh_recall:.3f}")
 
 # Choose which threshold to apply (swap to thresh_r80 if recall matters more)
-THRESHOLD = thresh_r50
+THRESHOLD = thresh_recall
 results["pred"] = (probs >= THRESHOLD).astype(int)
 
 print(results.head())
@@ -221,9 +227,9 @@ output_data_full = output_data_full.sort_values('date')
 output_data = output_data_full.groupby(['player_id','player_name','date','overuse_injury_day'],as_index=False).agg({'injury_predicted_prob':'mean','injury_prediction':'max','injury_flag':'max'})
 
 for player in output_data['player_name'].unique():
-    print(f'\nPlottin results for: {player}')
+    # print(f'\nPlottin results for: {player}')
     lname = player.split(' ',1)[1].lower().replace(' ','_')
-    output_lineplot(output_data,'player_name','Trend of Injury Likelihood','Date','Injury Likelihood',True,f'{figures_prefix}results_injury_likelihood_{lname}.png',player,player_colors,THRESHOLD)
+    output_lineplot(output_data,'player_name','Trend of Injury Likelihood','Date','Injury Likelihood',True,f'{figures_prefix}results_injury_likelihood_{lname}.png',player,player_colors,THRESHOLD,prediction_window)
 
 
 ######################################################################################################
@@ -251,12 +257,12 @@ model_data_c = pd.DataFrame(pca_trnsfrm_c)
 model_data_c.columns = ['PCA1','PCA2','PCA3','PCA4','PCA5','PCA6','PCA7','PCA8']
 
 #Add in player variables and dates to include in reporting output
-model_data_c[['player_id','player_name','date']] = gps_data_c[['player_id','player_name','date']]
+model_data_c[['player_id','player_name','date','distance','top_speed','percent_max_speed']] = gps_data_c[['player_id','player_name','date','distance','top_speed','percent_max_speed']]
 
 #################################################################################
 
 # Load dataset
-X_cur = model_data_c.drop(['player_id','player_name','date'],axis=1)
+X_cur = model_data_c.drop(['player_id','player_name','date','distance','top_speed','percent_max_speed'],axis=1)
 
 # Current Season Predicted Probabilities
 print('\nCurrent Season Output Injury Probabilities')
@@ -266,11 +272,12 @@ probs = model.predict_proba(X_cur)[:, 1]
 print('\nReporting Current Season')
 
 # Join back in the results and plot the outputs
-
 # Consider Re-tuning Threshold?
 model_out_full = model_data_c
 model_out_full['injury_prediction'] = (probs >= THRESHOLD).astype(int)
 model_out_full['injury_predicted_prob'] = probs
+model_out_full['prediction_threshold'] = THRESHOLD
+model_out_full['prediction_window'] = prediction_window
 
 ######################################################################################################
 # # Save results to Data folder

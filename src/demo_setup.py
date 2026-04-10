@@ -52,7 +52,7 @@ def gps_demo(dates_range,model):
 
     # Add Tags and Segment Name
     df["Tags"] = "None"
-    df["Segment Name"] = "None"
+    df["Segment Name"] = "Whole Session"
 
     # Person ID
     df["Person ID"] = df["Athlete Name"]

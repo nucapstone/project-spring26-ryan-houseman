@@ -89,7 +89,7 @@ def gps_lineplot(dataset,yvar,hue,plot_title,xlab,ylab,save_fig,fig_name,show_me
 
 ############################################################################################################################
 # Model Results
-def output_lineplot(dataset,hue,plot_title,xlab,ylab,save_fig,fig_name,highlight_player,colors,risk_threshold):
+def output_lineplot(dataset,hue,plot_title,xlab,ylab,save_fig,fig_name,highlight_player,colors,risk_threshold,prediction_window):
     # Build Scatter Plot
     plt.figure(figsize=(8,6))
     ax = sns.lineplot(data=dataset, x='date', y='injury_predicted_prob', hue=hue, palette={cat:'lightgray' for cat in dataset['player_name'].unique()},linewidth=1.5,alpha=0.35,legend=False)
@@ -99,16 +99,16 @@ def output_lineplot(dataset,hue,plot_title,xlab,ylab,save_fig,fig_name,highlight
     injury_dates = dataset.loc[(dataset['overuse_injury_day'] == 1) & (dataset['player_name'] == highlight_player),'date'].unique()
     for day in injury_dates:
         ax.axvline(day,color='red',linestyle='--',linewidth=2)
-        week_earlier = day - pd.Timedelta(weeks=1)
-        plt.axvspan(week_earlier, day, color='red',alpha=0.1)
+        window = day - pd.Timedelta(days=prediction_window)
+        plt.axvspan(window, day, color='red',alpha=0.1)
 
     # # Highlight Datapoints flagged for injury prediction
     injury_preds = dataset.loc[(dataset['injury_predicted_prob'] >= risk_threshold) & (dataset['player_name'] == highlight_player),['date','injury_predicted_prob']]
     injury_preds['date'] = pd.to_datetime(injury_preds['date'])
     injury_preds = injury_preds.sort_values('date')
 
-    print('\n')
-    print(injury_preds)
+    # print('\n')
+    # print(injury_preds)
 
     plt.plot(injury_preds['date'],injury_preds['injury_predicted_prob'],'rx',markersize=6,label='Injury Likelihood Flagged')
     plt.axhline(risk_threshold,color='grey',linestyle='--',linewidth=1.5)

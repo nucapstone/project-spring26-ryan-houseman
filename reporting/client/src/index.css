@@ -63,3 +63,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+label {
+    color: #2c3e50;
+}

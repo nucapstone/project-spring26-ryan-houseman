@@ -18,14 +18,13 @@ export default function Dropdown({ curView, onSelect, selectedDate, player_id, d
   const value = options.includes(selectedDate) ? selectedDate : options.at(0);
 
   return (
-    <div>
+    <div style={{marginBottom:"1.5rem", marginTop:"1.5rem"}}>
       <label htmlFor="dropdown">Select a Date: </label>
       <select
         id="dropdown"
         value={value}
         onChange={(e) => onSelect(e.target.value)}
       >
-        <option value="">-- Select --</option>
         {options.map((opt) => (
           <option key={opt} value={opt}>{opt}</option>
         ))}
