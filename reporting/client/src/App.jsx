@@ -7,6 +7,7 @@ import PlayerTrend from "./components/PlayerTrend";
 import PlayerKPI from "./components/PlayerKPI";
 
 import rpt1_data from './data/rpt1.json';
+import rpt2_data from './data/rpt2.json';
 
 function App() {
   // const[selectedPlayer,setSelectedPlayer] = useState("");
@@ -97,7 +98,7 @@ function App() {
       {view === "player_detail" && <Dropdown curView={view} onSelect={setSelectedDate} selectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data}/>}
       {/* {view === "player_detail" && <PlayerDetail SelectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data}/>} */}
       {view === "player_detail" && <PlayerKPI SelectedDate={SelectedDate} player_id={selectedPlayer} playerData={rpt1_data}/>}
-      {view === "player_detail" && <PlayerTrend SelectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data}/>}
+      {view === "player_detail" && <PlayerTrend SelectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data} teamData={rpt2_data}/>}
       {/* {view === "team_overview" && <TeamOverview SelectedDate={SelectedDate} changeView={setView} data={rpt1_data}/>} */}
     </div>
   
