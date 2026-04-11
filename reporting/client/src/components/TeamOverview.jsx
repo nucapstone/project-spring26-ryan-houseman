@@ -1,15 +1,71 @@
-export default function PlayerDetail({SelectedDate, changeView, data}) {
+import { PieChart, Pie, Cell} from "recharts";
 
-  // const player = data.find(item => item.session_date === SelectedDate && item.player_id === player_id);
+const COLORS = ["#1ABC9C","#f87171"];
+
+export default function teamOverview({SelectedDate, teamData}) {
+  const team_info = teamData.find(item => item.session_date === SelectedDate);
+  const toPercent = (val, decimals = 1) => `${(val * 100).toFixed(decimals)}%`;
+
+  const donut_input  = [
+    {name: "Freshness", value: team_info.team_freshness/10},
+    {name: "Fatigue", value: (1000 - team_info.team_freshness)/10},
+  ]
+  
+  const KPIstyle = (label, value, threshold) => {
+    if (label === "Average Injury Likelihood" && value > threshold) {
+      return { flex: 1, padding: "1rem", border: "3px solid #f87171", borderRadius: "8px", textAlign:"center", backgroundColor: "rgba(248, 113, 113, 0.15)"}; 
+    } else if (label === `Sessions Flagged in Previous ${team_info.prediction_window} Days` && value >= 0.2) {
+      return { flex: 1, padding: "1rem", border: "3px solid #f87171", borderRadius: "8px", textAlign:"center", backgroundColor: "rgba(248, 113, 113, 0.15)"}; 
+    } else {
+      return { flex: 1, padding: "1rem", border: "3px solid #e2e8f0", borderRadius: "8px", textAlign:"center"}; 
+    }
+  };
+
+  const kpis = [
+  { label: "Average Injury Likelihood", value: toPercent(team_info.team_injury_predicted_prob), raw_value: team_info.team_injury_predicted_prob},
+  { label: `Sessions Flagged in Previous ${team_info.prediction_window} Days`,   value: `${toPercent(team_info.team_predicted_injury_flag_rate_window)} (${team_info.injury_flag_cnt_window}/${team_info.team_session_cnt_window})`, raw_value: team_info.team_predicted_injury_flag_rate_window},
+  { label: "Average Distance Covered",  value: team_info.distance.toLocaleString(), raw_value: team_info.distance},
+  ];
+
 
   return (
     <div>
-      <h2>Team Overview</h2>
-      <button onClick={() => changeView("player_overview")}>Return to Player Overview</button>
-      {/* <p><strong>Player ID:</strong> {player.player_id}</p>
-      <p><strong>Player Name:</strong> {player.player_name}</p>
-      <p><strong>Likelihood of Injury (SelectedDate):</strong> {player.injury_predicted_prob}</p>
-      <p><strong>Predicted Injury Flag Rate (Previous Week):</strong> {player.predicted_injury_flag_rate}</p> */}
+    <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", marginTop: "1.5rem", 
+                  alignItems: "center", marginRight:"1.5rem", minHeight:"100px"}}>
+      <div style={{ position: "relative", width: 300, height: 300, flex: 1 }}>
+        <PieChart width={300} height={300}>
+          <Pie
+            data={donut_input}
+            cx={150}
+            cy={150}
+            innerRadius={80}
+            outerRadius={110}
+            dataKey="value"
+          >
+            {donut_input.map((entry, index) => (
+              <Cell key={index} fill={COLORS[index]} />
+            ))}
+          </Pie>
+        </PieChart>
+
+
+        <div style={{
+          position: "absolute",
+          top: "50%", left: "50%",
+          transform: "translate(-50%, -50%)",
+          textAlign: "center"
+        }}>
+          <div style={{ fontSize: "3rem", fontWeight: "bold" }}>{team_info.team_freshness}</div>
+          <div style={{ fontSize: "1.5rem", color: "#6b7280" }}>Team Freshness</div>
+        </div>
+      </div>
+      {kpis.map(({ label, value, raw_value }) => (
+        <div key={label} style={KPIstyle(label,raw_value,team_info.prediction_threshold)}>  
+          <p>{label}</p>
+          <h2>{value}</h2>
+        </div>
+      ))}
+    </div>
     </div>
   );
 }

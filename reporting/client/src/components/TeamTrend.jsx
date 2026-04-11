@@ -23,48 +23,34 @@ ChartJS.register(
   trendlinePlugin
 );
 
-export default function PlayerTrend({SelectedDate, player_id, data, teamData}) {
-
-  const player_info = data.find(item => item.session_date === SelectedDate && item.player_id === player_id);
-  const playerData = data.filter(item => item.player_id === player_id);
+export default function TeamTrend({SelectedDate, teamData}) {
   const toPercent = (val, decimals = 1) => `${(val * 100).toFixed(decimals)}%`;
 
-  const labels = playerData.map(item => item.session_date);
-  const values = playerData.map(item => item.injury_predicted_prob);
+  const labels = teamData.map(item => item.session_date);
+  const values = teamData.map(item => item.team_freshness);
   const highlightIndex = labels.indexOf(SelectedDate);
 
-  const labels_team = teamData.map(item => item.session_date);
-  const values_team = teamData.map(item => item.team_injury_predicted_prob);
-
-  const threshold = playerData.map(item => item.prediction_threshold);
+  const threshold = teamData.map(item => item.prediction_threshold);
+  const high_risk = Array(teamData.length).fill(200);
+  const medium_risk = Array(teamData.length).fill(500);
 
   const chartData = {
     labels,
     datasets: [
       {
-        label: `Injury Likelihood (${player_info.player_name})`,
+        label: `Team Freshness`,
         data: values,
         borderColor: "rgba(44,62,80, 1)",
         backgroundColor: "rgba(44,62,80, 0.2)",
         fill: false,
-        tension: 0.1
-      },
-      {
-        label: "Injury Likelihood (Team Average)",
-        data: values_team,
-        borderColor: "rgba(189, 189, 189, 1)",
-        backgroundColor: "rgba(189, 189, 189, 0.3)",
-        fill: false,
         tension: 0.1,
-      },
-      {
-        label: `Injury Flag Threshold - ${toPercent(player_info.prediction_threshold)}`,
-        data: threshold,
-        borderColor: "rgba(248, 113, 113, 1)",
-        backgroundColor: "rgba(248, 113, 113, 0.4)",
-        fill: false,
-        tension: 0.1,
-        borderDash: [5,5]
+        trendlineLinear: {
+          colorMin: "rgba(26, 188, 156, 1)",
+          colorMax: "rgba(26, 188, 156, 1)",
+          lineStyle: "solid",
+          borderDash: [5,5],
+          width: 3
+        }
       },
       {
         label: "Current Date",
@@ -87,15 +73,12 @@ export default function PlayerTrend({SelectedDate, player_id, data, teamData}) {
       title: { 
         display: true, 
         color: "#2c3e50",
-        text: "Predicted Likelihood of Overuse Injury",
+        text: "Team Freshness",
         font: {size:20, family:"sans-serif",lineHeight:1.15} 
        },
       tooltip: {
-        callbacks: {
-          label: (context) => `Injury Likelihood: ${(context.parsed.y * 100).toFixed(1)}%`
-        },
         enabled: true,
-        filter: (item) => item.dataset.label !== `Injury Flag Threshold - ${toPercent(player_info.prediction_threshold)}` && item.dataset.label !== "Current Date"
+        filter: (item) => item.dataset.label !== "High Risk Threshold" && item.dataset.label !== "Medium Risk Threshold" && item.dataset.label !== "Current Date"
       }
     },
     scales: {
@@ -108,7 +91,7 @@ export default function PlayerTrend({SelectedDate, player_id, data, teamData}) {
       },
       y: {
       ticks: {
-        callback: (val) => `${(val * 100).toFixed(1)}%`  // format y axis labels too
+        stepSize: 100
       }
       }
     }

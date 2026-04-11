@@ -149,6 +149,7 @@ print(rslts_df.head())
 
 rslts_df['session_date'] = pd.to_datetime(rslts_df['session_date'],format='%Y-%m-%d',errors='coerce')
 rslts_df['session_date'] = rslts_df['session_date'].dt.strftime('%Y-%m-%d')
+rslts_df['prediction_threshold'] = round(rslts_df['prediction_threshold'],4)
 rslts_df = rslts_df[['player_id','player_name','session_date','injury_predicted_prob','injury_prediction','injury_flag_cnt_window','predicted_injury_flag_rate_window','session_cnt_window','player_freshness','distance','top_speed','percent_max_speed','avg_distance','avg_top_speed','avg_pcnt_max_speed','prediction_threshold','prediction_window']]
 
 ##################################################################################

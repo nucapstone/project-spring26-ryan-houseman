@@ -1,12 +1,10 @@
-import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import { PieChart, Pie, Cell} from "recharts";
 
 const COLORS = ["#1ABC9C","#f87171"];
 
 export default function PlayerKPI({SelectedDate, player_id, playerData}) {
   const player = playerData.find(item => item.session_date === SelectedDate && item.player_id === player_id);
   const toPercent = (val, decimals = 1) => `${(val * 100).toFixed(decimals)}%`;
-
-  console.log(player);
 
   const donut_input  = [
     {name: "Freshness", value: player.player_freshness/10},
@@ -49,7 +47,6 @@ export default function PlayerKPI({SelectedDate, player_id, playerData}) {
           </Pie>
         </PieChart>
 
-        {/* Center label now sits over the donut */}
         <div style={{
           position: "absolute",
           top: "50%", left: "50%",
@@ -61,7 +58,6 @@ export default function PlayerKPI({SelectedDate, player_id, playerData}) {
         </div>
       </div>
       {kpis.map(({ label, value }) => (
-        // <div key={label} style={{ flex: 1, padding: "1rem", border: "3px solid #e2e8f0", borderRadius: "8px", textAlign:"center"}}>
         <div key={label} style={KPIstyle(label,player.injury_predicted_prob,player.prediction_threshold)}>  
           <p>{label}</p>
           <h2>{value}</h2>

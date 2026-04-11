@@ -1,19 +1,15 @@
 import { useState, useMemo} from "react";
 import Dropdown from "./components/Dropdown";
 import PlayerOverview from "./components/PlayerOverview";
-import PlayerDetail from "./components/PlayerDetail";
 import PlayerTrend from "./components/PlayerTrend";
-// import TeamOverview from "./components/TeamOverview";
 import PlayerKPI from "./components/PlayerKPI";
+import TeamOverview from "./components/TeamOverview";
+import TeamTrend from "./components/TeamTrend";
 
 import rpt1_data from './data/rpt1.json';
 import rpt2_data from './data/rpt2.json';
 
 function App() {
-  // const[selectedPlayer,setSelectedPlayer] = useState("");
-  // const [view, SetView] = useState("player_overview");
-  // const [sidebarOpen, setSidebarOpen] = useState(true);
-
   const dates = useMemo(() =>
   [...new Set(rpt1_data.map(item => item.session_date))].sort().reverse()
   , []);
@@ -66,6 +62,7 @@ function App() {
               { label: "Team Overview", value: "team_overview" },
               { label: "Player Overview", value: "player_overview" },
               { label: "Player Detail", value: "player_detail" },
+              { label: "About", value: "about" },
             ].map(({ label, value }) => (
               <button
                 key={value}
@@ -96,10 +93,11 @@ function App() {
       {view === "player_overview" && <Dropdown curView={view} onSelect={setSelectedDate} selectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data}/>}
       {view === "player_overview" && <PlayerOverview SelectedDate={SelectedDate} changeView={setView} selectedPlayer={setSelectedPlayer} data={rpt1_data}/>}
       {view === "player_detail" && <Dropdown curView={view} onSelect={setSelectedDate} selectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data}/>}
-      {/* {view === "player_detail" && <PlayerDetail SelectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data}/>} */}
       {view === "player_detail" && <PlayerKPI SelectedDate={SelectedDate} player_id={selectedPlayer} playerData={rpt1_data}/>}
       {view === "player_detail" && <PlayerTrend SelectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data} teamData={rpt2_data}/>}
-      {/* {view === "team_overview" && <TeamOverview SelectedDate={SelectedDate} changeView={setView} data={rpt1_data}/>} */}
+      {view === "team_overview" && <Dropdown curView={view} onSelect={setSelectedDate} selectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data}/>}
+      {view === "team_overview" && <TeamOverview SelectedDate={SelectedDate} teamData={rpt2_data}/>}
+      {view === "team_overview" && <TeamTrend SelectedDate={SelectedDate} teamData={rpt2_data}/>}
     </div>
   
   </div>
