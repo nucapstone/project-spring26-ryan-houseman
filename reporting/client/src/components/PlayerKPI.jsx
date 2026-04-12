@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell} from "recharts";
+import { PieChart, Pie, Cell, Label} from "recharts";
 
 const COLORS = ["#1ABC9C","#f87171"];
 
@@ -25,6 +25,19 @@ export default function PlayerKPI({SelectedDate, player_id, playerData}) {
   { label: "Distance Covered",  value: player.distance.toLocaleString()},
   ];
 
+  const CenterLabel = () => {
+    return (
+      <>
+        <text x={150} y={140} textAnchor="middle" dominantBaseline="middle" style={{ fontSize: "3rem", fontWeight: "bold", fill:"#2c3e50" }}>
+          {player.player_freshness}
+        </text>
+        <text x={150} y={170} textAnchor="middle" dominantBaseline="middle" style={{ fontSize: "1.5rem", fill: "#2c3e50" }}>
+          Player Freshness
+        </text>
+      </>
+    );
+  };
+
 
   return (
     <div>
@@ -44,18 +57,10 @@ export default function PlayerKPI({SelectedDate, player_id, playerData}) {
             {donut_input.map((entry, index) => (
               <Cell key={index} fill={COLORS[index]} />
             ))}
+            <Label content={<CenterLabel />} position="center" />
           </Pie>
         </PieChart>
 
-        <div style={{
-          position: "absolute",
-          top: "50%", left: "50%",
-          transform: "translate(-50%, -50%)",
-          textAlign: "center"
-        }}>
-          <div style={{ fontSize: "3rem", fontWeight: "bold" }}>{player.player_freshness}</div>
-          <div style={{ fontSize: "1.5rem", color: "#6b7280" }}>Player Freshness</div>
-        </div>
       </div>
       {kpis.map(({ label, value }) => (
         <div key={label} style={KPIstyle(label,player.injury_predicted_prob,player.prediction_threshold)}>  

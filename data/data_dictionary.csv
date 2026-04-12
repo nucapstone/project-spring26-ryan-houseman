@@ -1,0 +1,19 @@
+table_name,column,description,cleaning_usage,linkage,target
+injury_data,Patient,Player's name.  This is used to link the injury data to the GPS data.  ,N,Y,N
+injury_data,Injury Date,Date injury occurred.  This is also used to link the injury data to the GPS data.,N,Y,N
+injury_data,Overuse Injury,Y/N flag for whether the injury is an overuse injury.  The model only predicts overuse injuries.  This variable is used to generate a 1/0 flag for whether a player sustains an overuse injury during an upcoming window of time (default is 7 days),N,N,Y
+gps_data,Athlete Name,Player's name.  This is used to link the injury data to the GPS data.  ,N,N,N
+gps_data,Start Date,Date of training session or match.  This is used to link the injury data to the GPS data.,N,N,N
+gps_data,Duration (minutes),Duration of training session or match.  This must be populated to be included in prediction model.,Y,N,N
+gps_data,Session Load,"Summary metric defined by PlayerData.  Logistic regression performs slightly better including this metric.  The metric is correlated with other metrics, so this is one example behind the reasoning to use PCA for logistic regression.  This must be > 0 for a data point to be included in the model.",Y,N,N
+gps_data,Distance (yds),Total distance covered by a player during a training session or match.  This must be > than 100 yards to be included in the model.,Y,N,N
+gps_data,Yards per Minute (yds),Yards per minute covered by a player throughout the session.,N,N,N
+gps_data,High Intensity Running (yds),"Distance covered by the player during occassions flagged as high intensity events by PlayerData.  This is a fast run, but slower than sprinting.",N,N,N
+gps_data,No. of High Intensity Events,Number of high intensity running events during a session.,N,N,N
+gps_data,Sprint Distance (yds),Distance covered by the player during occassions flagged as sprints by PlayerData.  These are moments where a player is deemed to be running close to or at top speed.,N,N,N
+gps_data,No. of Sprints,Number of sprinting events during a session.,N,N,N
+gps_data,Top Speed (mph),The highest speed at which a player ran during a session.,N,N,N
+gps_data,Avg Speed (mph),A player's average running speed throughout a session.,N,N,N
+gps_data,Accelerations,Number of occasions a player accelerated during a session.,N,N,N
+gps_data,Decelerations,Number of occasions a player decelerated during a session.,N,N,N
+gps_data,Percentage of Max Speed,Metric created by PlayerData that relates a player's speed during a session to their top speed.  This must be > 0 to for a data point to be included in the model.,Y,N,N

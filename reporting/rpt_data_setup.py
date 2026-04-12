@@ -15,6 +15,7 @@ data_dir_actual = root / 'data/actual'
 data_dir_demo = root / 'data/demo'
 rpt_dir = root / 'reporting'
 front_end_data = root / 'reporting/client/src/data'
+dict_dir = root / 'data'
 
 # Check if there is any actual data to use, otherwise use the demo data
 files = [f for f in os.listdir(data_dir_actual) if f.endswith(".csv")]
@@ -48,6 +49,11 @@ print('\nPlayer Overview & Player Detail Reporting Data Generation')
 # Calculate COUNT OF Datapoints flagged in the previous prediction window for Injury by Player
 
 rslts_df['session_date'] = pd.to_datetime(rslts_df['date'])
+
+# Limit Demo data to final 2 months
+if demo:
+    rslts_df = rslts_df[rslts_df['session_date'] >= '2025-10-01'].reset_index(drop=True)
+
 rslts_df['injury_predicted_prob'] = round(rslts_df['injury_predicted_prob'],4)
 rslts_df = rslts_df.sort_values(['player_name','date'])
 
@@ -101,7 +107,6 @@ rslts_df['session_cnt_window'] = (
 rslts_df.drop(['cnt','date'],axis=1,inplace=True)
 rslts_df['predicted_injury_flag_rate_window'] = round(rslts_df['injury_flag_cnt_window']/rslts_df['session_cnt_window'],2)
 
-
 #################################################################################
 # Calculate Freshness Metric (injury likelihood scaled by exponential distribution)
 
@@ -114,23 +119,35 @@ def freshness_metric(df, date, player_id):
         (df["session_date"] <= date) &
         (df["session_date"] >= date - pd.Timedelta(days=7))
     ].copy()
+
+    # if len(past_7_days) < min_sessions:
+    #     return None
     
     # Calculate how many days ago each row occurred
     past_7_days["days_ago"] = (date - past_7_days["session_date"]).dt.days
     
     # Apply exponential decay weight
     past_7_days["weight"] = np.exp(-lambda_decay * past_7_days["days_ago"])
+
+    weighted_sum = (past_7_days["injury_predicted_prob"] * past_7_days["weight"]).sum()
+    weight_sum = past_7_days["weight"].sum()
+    return round(weighted_sum / weight_sum, 2)
     
-    # Return weighted sum
-    return round((past_7_days["injury_predicted_prob"] * past_7_days["weight"]).sum(),2)
+    # # Return weighted sum
+    # return round((past_7_days["injury_predicted_prob"] * past_7_days["weight"]).sum(),2)
+
 
 # Apply to every row in the dataframe
 rslts_df["player_freshness"] = rslts_df.apply(
     lambda row: freshness_metric(rslts_df, row["session_date"], row["player_id"]), axis=1
 )
 
+# rslts_df['player_freshness'] = round(1000 * (1 - rslts_df["player_freshness"]), 2)
 rslts_df["player_freshness"] = round(1000 * (1 - (rslts_df["player_freshness"] - rslts_df["player_freshness"].min()) / 
-                               (rslts_df["player_freshness"].max() - rslts_df["player_freshness"].min())),2)
+                               (rslts_df["player_freshness"].max() - rslts_df["player_freshness"].min())),0)
+
+
+
 
 #################################################################################
 # Calculate Average Distance, Top Speed and Percent Max Speed by player over course of season
@@ -191,6 +208,19 @@ rpt2_out = front_end_data / 'rpt2.json'
 
 with open(rpt2_out, "w") as f:
     f.write(json_rpt2)
+
+##################################################################################
+# Upload Data Dictionary and Create JSON Array for Front End
+print('\nUpload Data Dictionary')
+data_dict_file = dict_dir / 'data_dictionary.csv'
+data_dict = pd.read_csv(data_dict_file)
+
+# Convert DataFrame to JSON string (array of objects)
+json_data_dict = data_dict.to_json(orient='records')
+data_dict_rpt = front_end_data / 'data_dictionary.json'
+
+with open(data_dict_rpt, "w") as f:
+    f.write(json_data_dict)
 
 #################################################################################
 # Save results to Data folder

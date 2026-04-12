@@ -39,7 +39,7 @@ print('\nData Prep for Model Generation Data')
 # Upload Raw GPS Data
 print('Upload Raw GPS Data - Model')
 # Raw GPS Data
-raw_gps_file = data_dir / 'gps_data_raw.csv'
+raw_gps_file = data_dir / 'gps_data_raw_model.csv'
 
 gps_data_raw = pd.read_csv(raw_gps_file)
 print(gps_data_raw.head())

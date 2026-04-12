@@ -5,9 +5,13 @@ import PlayerTrend from "./components/PlayerTrend";
 import PlayerKPI from "./components/PlayerKPI";
 import TeamOverview from "./components/TeamOverview";
 import TeamTrend from "./components/TeamTrend";
+import About from "./components/About";
 
 import rpt1_data from './data/rpt1.json';
 import rpt2_data from './data/rpt2.json';
+import data_dictionary from './data/data_dictionary.json';
+
+import bio_img from "./photos/houseman_about_me_photo.jpg"
 
 function App() {
   const dates = useMemo(() =>
@@ -20,7 +24,7 @@ function App() {
   , []);
 
   const[selectedPlayer,setSelectedPlayer] = useState(defaultPlayer);
-  const [view, setView] = useState("player_overview");
+  const [view, setView] = useState("team_overview");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [SelectedDate, setSelectedDate] = useState(dates.at(0)); // only runs once on mount
 
@@ -98,6 +102,7 @@ function App() {
       {view === "team_overview" && <Dropdown curView={view} onSelect={setSelectedDate} selectedDate={SelectedDate} player_id={selectedPlayer} data={rpt1_data}/>}
       {view === "team_overview" && <TeamOverview SelectedDate={SelectedDate} teamData={rpt2_data}/>}
       {view === "team_overview" && <TeamTrend SelectedDate={SelectedDate} teamData={rpt2_data}/>}
+      {view === "about" && <About data_dictionary={data_dictionary} bio_img={bio_img}/>}
     </div>
   
   </div>
