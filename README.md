@@ -17,7 +17,7 @@ Team Lead: Ryan Houseman
     * Includes various quantitative metrics on speed, distance, acceleration/deceleration
     * Categorical values related to player position, and training session/match information
     * Fall 2025 data includes ~5000 records of of player data for 28 players over the course of the season.  Data is available in CSV format.
-    * The GPS data is easily downloaded from PlayerData's portal using the CSV Builder tool.  Include all available columns in the raw data. 
+    * The GPS data is easily downloaded from PlayerData's portal using the CSV Builder tool.  Include all available columns in the raw data, and use yards as the default distance. 
 *  Injury report data available in CSV format detailing player injuries throughout the Fall 2025 season.
 
 GPS and Injury data for the Fall 2025 season is used to build and train the overuse injury prediction model.  Throughout the upcoming Fall 2026 season, the Bowdoin coaching staff, can regularly apply the model to current GPS data.  At the completion of each season, injury data can be compiled and appended to the training data.  Yearly updates to the training data are expected to help improve model performance over time.  
