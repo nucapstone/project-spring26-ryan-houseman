@@ -1,31 +1,36 @@
-# DS5500 Spring 2026 - Data Science Capstone Project
+# Northeastern DS5500 Spring 2026 - Data Science Capstone Project
 ## Ryan Houseman
 
-Project Short Name: bowdoin_soccer
-
-Project Name: Bowdoin Soccer GPS Player Tracking - Injury Risk Analysis
+Project Name: GPS Driven Overuse Injury Prediction Model
 
 Team Lead: Ryan Houseman
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ## Stakeholders
-* Bowdoin Soccer Coaching Staff: Scott Wiercinski (swiercin@bowdoin.edu) & Andrew Banadda (a.banadda@bowdoin.edu)
+* Bowdoin Soccer Coaching Staff: Scott Wiercinski & Andrew Banadda
 
 ## Background
-* In the Fall 2025 Season, the Bowdoin College soccer team began wearing GPS tracking devices for all of their practices and games.  Many other collegiate teams across many sports are beginning to do the same.  The service the Bowdoin team uses provides some high level reports on this data, but at the college level, coaches often don't have the resources/ability to do their own in depth analysis.  The purpose of this project is to leverage the Bowdoin Soccer GPS data to build a player injury prediction model, and provide the coaching staff with reporting from the model outputs.
+* In the Fall 2025 Season, the Bowdoin College soccer team began using a GPS tracking sevice through PlayerData to collect GPS data on players for practices and games.  Many other collegiate teams across many sports are beginning to do the same.  The service provides some reporting on this data, but at the college level, small coaching staffs often don't have the resources or time to do their own in depth analysis.  The purpose of this project is to leverage the GPS data from PlayerData to build a player injury prediction model and develop a front-end with reporting from the model outputs.
  
 ## Data
 * GPS player tracking (from PlayerData)
     * Includes various quantitative metrics on speed, distance, acceleration/deceleration
     * Categorical values related to player position, and training session/match information
-    * Fall 2025 data includes ~5000 records of of player data for 28 players over the course of the season.  Data is available in CSV format. 
-*  Injury report data available in CSV format detailing player injuries throughout the Fall 2025.
+    * Fall 2025 data includes ~5000 records of of player data for 28 players over the course of the season.  Data is available in CSV format.
+    * The GPS data is easily downloaded from PlayerData's portal using the CSV Builder tool.  Include all available columns in the raw data. 
+*  Injury report data available in CSV format detailing player injuries throughout the Fall 2025 season.
 
-The intention of this project is to use the Fall 2025 data to build out the initial prediction model and reporting.  Once productionalized, GPS data could be refreshed regularly and run through the model to see timely predictions & player updates. Injury data will likely be refreshed once a season.
+GPS and Injury data for the Fall 2025 season is used to build and train the overuse injury prediction model.  Throughout the upcoming Fall 2026 season, the Bowdoin coaching staff, can regularly apply the model to current GPS data.  At the completion of each season, injury data can be compiled and appended to the training data.  Yearly updates to the training data are expected to help improve model performance over time.  
 
-Input data files:
-* data/gps_data_raw.csv
-* data/injury_data_raw.csv
+In order to maintain the privacy of the Bowdoin Soccer GPS and Injury data, DEMO datasets have been created and are the only data available in this repository.  DEMO data inputs are listed below.  If you wish to run this model on your own PlayerData output and Injury data, you will need to populate data/actual/ with csv files of the same format as the DEMO files listed below. 
+
+Input DEMO data files:
+Model Training Data
+* data/demo/gps_data_raw_model.csv
+* data/demo/injury_data_raw.csv
+
+GPS Data from Current Season
+* data/demo/gps_data_raw_current.csv
 
 ## Model Overview
 The implementation of this project uses a Logistic Regression model to predict the likelihood of an overuse injury occurring in the upcoming week.  The inputs for this model are currently the 5 principal components of the GPS output's numerical data obtained through Principal Component Analysis (PCA).  It would be possible to include One-hot encoded variables for categorical variables (such as player name or position), but this renders the numerical data less important.  Given that the roster will continue to evolve every year, I've decided to focus on only the numerical outputs of the GPS data.  Further model testing and tuning will continue throughout the project, and conversations with stakeholders have provided valuable guidance on model assumptions and configuration.
