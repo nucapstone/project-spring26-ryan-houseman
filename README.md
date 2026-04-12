@@ -13,7 +13,7 @@ Team Lead: Ryan Houseman
 * In the Fall 2025 Season, the Bowdoin College soccer team began using a GPS tracking sevice through PlayerData to collect GPS data on player movement for practices and games.  Many other collegiate teams across many sports are beginning to do the same.  The service provides some reporting on this data, but at the college level, small coaching staffs often don't have the resources or time to do their own in depth analysis.  The purpose of this project is to leverage the GPS data from PlayerData to build a player injury prediction model and develop a front-end with reporting from the model outputs.
  
 ## Data
-* GPS player tracking (from PlayerData)
+* GPS player tracking (from PlayerData https://playerdata.com/en-us)
     * Includes various quantitative metrics on speed, distance, acceleration/deceleration
     * Categorical values related to player position, and training session/match information
     * Fall 2025 data includes ~5000 records of of player data for 28 players over the course of the season.  Data is available in CSV format.
