@@ -7,11 +7,11 @@ data_prep:
 model_lreg:
 	python src/logistic_regression.py
 
-model_rf:
-	python src/random_forest.py
-
 rpt_data:
 	python reporting/rpt_data_setup.py
+
+dev_setup:
+	cd reporting/client; npm install
 
 run_dev: 
 	cd reporting/client; npm run dev
@@ -21,4 +21,7 @@ eda:
 
 dim_reduct:
 	python src/dimensionality_reduction.py
+
+model_rf:
+	python src/random_forest.py
 

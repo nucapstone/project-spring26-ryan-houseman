@@ -48,10 +48,10 @@ else:
 
 # Output directory for results
 if demo:
-    os.makedirs(root / "figures/demo/results/logistic_regression", exist_ok=True)
+    os.makedirs(root / "figures/results/demo/logistic_regression", exist_ok=True)
 
 else:
-    os.makedirs(root / "figures/actual/results/logistic_regression", exist_ok=True)
+    os.makedirs(root / "figures/results/actual/logistic_regression", exist_ok=True)
 
 #################################################################################
 # Upload Raw GPS Data
@@ -108,13 +108,6 @@ print(len(y_test))
 
 print('\nData Points that meet criteria for injury flag (TEST)')
 print(sum(y_test))
-
-# Not Necessary since PCA was already performed
-###################################################
-# # Feature scaling
-# scaler = StandardScaler()
-# X_train = scaler.fit_transform(X_train)
-# X_test = scaler.transform(X_test)
 
 # Train the model
 model = LogisticRegression()
@@ -227,7 +220,6 @@ output_data_full = output_data_full.sort_values('date')
 output_data = output_data_full.groupby(['player_id','player_name','date','overuse_injury_day'],as_index=False).agg({'injury_predicted_prob':'mean','injury_prediction':'max','injury_flag':'max'})
 
 for player in output_data['player_name'].unique():
-    # print(f'\nPlottin results for: {player}')
     lname = player.split(' ',1)[1].lower().replace(' ','_')
     output_lineplot(output_data,'player_name','Trend of Injury Likelihood','Date','Injury Likelihood',True,f'{figures_prefix}results_injury_likelihood_{lname}.png',player,player_colors,THRESHOLD,prediction_window)
 

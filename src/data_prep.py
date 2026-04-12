@@ -39,8 +39,7 @@ print('\nData Prep for Model Generation Data')
 # Upload Raw GPS Data
 print('Upload Raw GPS Data - Model')
 # Raw GPS Data
-raw_gps_file = data_dir / 'gps_data_raw_2025.csv'
-# raw_gps_file = data_dir / 'gps_data_raw.csv'
+raw_gps_file = data_dir / 'gps_data_raw.csv'
 
 gps_data_raw = pd.read_csv(raw_gps_file)
 print(gps_data_raw.head())
@@ -79,37 +78,6 @@ raw_injuries_file = data_dir / 'injury_data_raw.csv'
 injuries_raw = pd.read_csv(raw_injuries_file)
 
 ########################################################################################
-# # Drop unneccesary columsn
-# injuries = injuries_raw.drop(['Sport','Body Part','Injury Side','Injury Site','Sport Activity','Injury'],axis=1)
-
-# # Rename Columns
-# injuries.rename(columns={'Patient':'player_name_raw','Mechanism':'mechanism',
-#                                'Injury Date':'injury_date'}, inplace=True)
-
-# # Convert Injury Date to DateTime
-# injuries['injury_date'] = pd.to_datetime(injuries['injury_date'],format='%Y-%m-%d')
-
-# # Tag Injuries as Overuse Related
-# def overuse_flag(mechanism):
-#     if mechanism == 'Agility Movement':
-#         return 'Y'
-#     if mechanism == 'Inversion':
-#         return 'Y'
-#     if mechanism == 'Lunging':
-#         return 'Y'
-#     if mechanism == 'Overuse':
-#         return 'Y'
-#     if mechanism == 'Cutting / Change of Direction':
-#         return 'Y'
-#     if mechanism == 'Overstretching':
-#         return 'Y'
-#     if mechanism == 'Axial Loading':
-#         return 'Y'
-#     else:
-#         return 'N'
-
-# injuries['overuse_flag'] = injuries['mechanism'].apply(overuse_flag)
-############################################################################################
 # Updates to scructure of raw injury data
 # # Rename Columns
 injuries = injuries_raw.copy()
