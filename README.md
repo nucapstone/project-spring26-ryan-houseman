@@ -1,4 +1,4 @@
-# Northeastern DS5500 Spring 2026 - Data Science Capstone Project
+# Roux Institute Spring 2026 - Data Science Capstone Project
 ## Ryan Houseman
 
 Project Name: GPS Driven Overuse Injury Prediction Model
@@ -66,32 +66,31 @@ INCLUDE LINK TO REPORTING HERE!
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ## Running the Code & Reproducability
-One of the focuses of my project is to identify a way for the Bowdoin College coaching staff to easily refresh model results and reporting.  Research for this underway, and I hope to simplify this is much as possible by the end of the semester.  As it stands, here is the current guidance for running the various components of this data pipeline and front-end output.   
+Below is the current guidance for running the various components of this data pipeline and front-end output.  Future work on the project may include the implementation of a backend, which could allow users to refresh the model and reporting while only interactive with the front-end.     
 
 #### Required Software
 The code for this project was written and run using a Conda environment for software and package management.  Please follow instructions in [conda.md](https://github.com/ds5110/git-intro/blob/main/conda.md) for more guidance on setting up a Conda environment.  
 
 All software required for running the code is located in [environment.yml](environment.yml).  Please setup your environment with all software and packages included in that file. 
 
-Additionally, Node.js is used for some of the front-end reporting.  This is installed outside of Conda, please follow the instructions in [node.md](https://github.com/ds5110/git-intro/blob/main/node.md) for guidance on installing Node.js.
+Additionally, Node.js is used for some of the front-end reporting.  This is installed outside of Conda, please follow the instructions in [node.md](https://github.com/ds5110/git-intro/blob/main/node.md) for guidance on installing Node.js.  This also requires a user
 
 #### Makefile
-The repository has a Makefile available to allow a user to easily step through the data pipeline for this project.  Please run the following make commands in order to reproduce the predictive model and reporting. 
+The repository has a Makefile available to allow a user to easily step through the data pipeline for this project.  Please run the following make commands in order to reproduce the predictive model and reporting.  Some additional make commands for EDA, dimensionality reduction, and the random forest model are also available.   
 
 ```
-make demo_data    #This command runs the src/demo_setup.py file which creates a demo dataset.  If actual data is stored in the appropriate folder, the data pipeline will use the demo data.  
+make demo_data     #This command runs the src/demo_setup.py file which creates a demo dataset.  If actual data is stored in the appropriate folder, the data pipeline will use the real data and this command is not necessary.  
 
-make data_prep    #This command runs the src/data_prep.py file which joins and cleans the 2 input data files and produces data/bms_data_2026.csv
+make data_prep     #This command runs the src/data_prep.py file which joins and cleans the 2 input data files and produces data/bms_data_2026.csv
 
-make model    #This command runs src/logistic_regression.py which runs the logistic regression model, outputs plots to figures/results/ and creates data/model_results.csv
+make model_lreg    #This command runs src/logistic_regression.py which runs the logistic regression model, outputs plots to figures/results/ and creates data/model_results.csv
 
-make rpt_data    #This command runs reporting/rpt_data_setup.py which generates JSON output files used for the front-end reporting
+make rpt_data      #This command runs reporting/rpt_data_setup.py which generates JSON output files used for the front-end reporting
 
-# NOTE: If npm is not installed, you'll need to run npm install within the reporting/client/ directory of this repository before running the following commmand.
-make run_dev    #This command uses npm to launch the front-end output of the project
+make dev_setup     #This command runs the npm install command, which is required for the front-end reporting.  This only needs to be run once.  
+
+make run_dev       #This command uses npm to launch the front-end output of the project
 ```
-
-As the semester concludes, I am working out the best & simplest approaches to refresh the model and results as well as figuring out how to host the front-end output (likely Github pages).  The documentation and guidance here will be updated to reflect any of these advancements in the coming weeks. 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ## Future Updates
