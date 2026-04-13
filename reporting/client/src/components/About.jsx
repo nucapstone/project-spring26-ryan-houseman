@@ -4,7 +4,7 @@ export default function About({data_dictionary, bio_img}) {
   const injury_dictionary = data_dictionary.filter(item => item.table_name === "injury_data");
 
 
-  const getRowStyle = (player_freshness) => {
+  const getRowStyle = () => {
       return { backgroundColor: "#E9FCF8", color:"#2c3e50"}; 
   };
 
@@ -36,7 +36,7 @@ export default function About({data_dictionary, bio_img}) {
              injury prediction model for overuse injuries.  More specifically, the model aims to predict the likelihood that a player 
              will sustain an overuse injury in the upcoming week.
       </p>
-      <h3>Input Data</h3>
+      <h3 style={{marginTop:"2.5rem"}}>Input Data</h3>
       <p style={{marginBottom: "1rem" }}>
          Inputs for the model include both GPS player tracking data as well as player injury data.  This project leverages GPS data from PlayerData, which is available from
          the software's CVS builder page.  The model inputs assume that all columns from PlayerData's output are included, and that yards are used as the unit of measurement.  
@@ -55,7 +55,7 @@ export default function About({data_dictionary, bio_img}) {
         </thead>
         <tbody>
           {gps_dictionary.map((dp) => (
-            <tr key={dp.player_id} style={getRowStyle(dp.player_freshness)}>
+            <tr key={dp.column} style={getRowStyle()}>
               <td style={{wordWrap: "break-word", whiteSpace: "normal", padding: "8px 14px"}}>{dp.column}</td>
               <td style={{wordWrap: "break-word", whiteSpace: "normal", padding: "8px 14px"}}>{dp.description}</td>
             </tr>
@@ -72,14 +72,14 @@ export default function About({data_dictionary, bio_img}) {
         </thead>
         <tbody>
           {injury_dictionary.map((dp) => (
-            <tr key={dp.player_id} style={getRowStyle(dp.player_freshness)}>
+            <tr key={dp.column} style={getRowStyle()}>
               <td style={{wordWrap: "break-word", whiteSpace: "normal", padding: "8px 14px"}}>{dp.column}</td>
               <td style={{wordWrap: "break-word", whiteSpace: "normal", padding: "8px 14px"}}>{dp.description}</td>
             </tr>
           ))}
         </tbody>
       </table>  
-      <h3 style={{marginTop:"1.5rem"}}>Model Information</h3>   
+      <h3 style={{marginTop:"2.5rem"}}>Model Information</h3>   
       <p style={{marginBottom: "1rem" }}>
          The implementation of this project includes both a logistic regression model and a random forest model used to predict the likelihood
           of an overuse injury occurring in during an upcoming window of time.  The model currently uses a 7 day window for injury predictions,
@@ -88,18 +88,19 @@ export default function About({data_dictionary, bio_img}) {
       </p> 
       <p style={{marginBottom: "1rem" }}>
          Due to the significant class imbalance in the model's target variable (occurrence of an overuse injury in the upcoming week),
-         modeling results were judged based on their precision and recall for accurately predicting injuries.  The random forest model does not currently
-         yield reliable results, but there is hope that both models will improve as more data becomes available over time.  The project currently uses
+         modeling results were judged based on their precision and recall for accurately predicting injuries.  The logistic regression performs reasonably, but not exceptionally, well on the one season of 
+         data currently available.  Detailed results are available in the project repository.
+         The random forest model does not currently yield reliable results.  There is hope that both models will improve as more data becomes available over time.  The project currently uses
          the logistic regression modeling results for all front-end reporting.    
       </p> 
       <p style={{marginBottom: "1rem" }}>
-         Leading up to an injury, a player may have many data points available.  As dictated by the model configurations, each of those data points are a value of 1.
+         Leading up to an injury, a player may have many data points available.  As dictated by the model configurations, each of those data points are assigned a value of 1.
            In reality, it's not expected that the signs of an overuse injury would be present in all of those data points 
            (some practices may be easier, so it's hard to tell if a player is seriously fatigued or susceptible to injury). 
-            Because of this, the reporting associated with the model outputs focuses on a higher recall and identifying players who have multiple flags within a short timespan.
+            Because of this, the reporting associated with the model outputs focuses on a higher prediction recall and identifying players who have multiple flags within a short timespan.
              While some players may be incorrectly flagged for injury (lower precision), most injuries do have several data points flagged within a 7 day window leading up to the injury.    
       </p> 
-      <h3 style={{marginTop:"1.5rem"}}>Reporting Notes</h3>   
+      <h3 style={{marginTop:"2.5rem"}}>Reporting Notes</h3>   
       <p style={{marginBottom: "1rem" }}>
          The model reporting contains several wepages dedicated to different aspect of the model's ouptuts: 
          Team Overview, Player Overview, and Player Detail.  These pages, and the metrics within them are described in more detail below.  
@@ -108,7 +109,7 @@ export default function About({data_dictionary, bio_img}) {
       </p>  
       <h4 style={{marginTop:"1.5rem"}}>Team Overview</h4>
       <p style={{marginBottom: "1rem" }}>
-         Team Overview highlights various teamwide metrics for a given date.  The purpose of this page is to help a coaching staff identify
+         This page highlights various teamwide metrics for a given date.  The purpose of this page is to help a coaching staff identify
          the overall team injury risk.  If the team is very fatigued, coaches could shorten practice or focus on less physically demanding drills.
       </p> 
       <p style={{marginBottom: "1rem" }}>
@@ -118,13 +119,13 @@ export default function About({data_dictionary, bio_img}) {
           displayed.  This is highlighted red if the rate is greater than or equal to 20% 
       </p> 
       <p style={{marginBottom: "1rem" }}>
-         Additionally, the page has a "Team Freshness" metric.  This is an average value of "Player Freshness", which is weighted average of
-         injury likelihood values from the previous week (more recent data is more important).  The score is standardized and scaled 
-         to a range of 0 - 1000. The trend graph in this page illustrates the Team Freshness over the course of the season.
+         Additionally, the page has a "Team Freshness" metric which is an average value of "Player Freshness" in the other dashboards.  This value is calculated as the weighted average of
+         overuse injury likelihood from the previous week, using the exponential distribution with labmda = 0.3 for weights.
+         The score is standardized and scaled to a range of 0 - 1000. The trend graph in this page illustrates the Team Freshness over the course of the season.
       </p> 
       <h4 style={{marginTop:"1.5rem"}}>Player Overview</h4>
       <p style={{marginBottom: "1rem" }}>
-         Player Overview displays a list of all players who participated in a training session or match on a given day. 
+         This page displays a list of all players who participated in a training session or match on a given day. 
          The data is sorted and color coded by the "Player Freshness" score described above.  Players with a Player Freshness below 200 
          are flagged as high risk, while players with a Player Freshness between 200 and 500 are flagged as medium risk.   
       </p> 
@@ -133,21 +134,21 @@ export default function About({data_dictionary, bio_img}) {
       </p> 
       <h4 style={{marginTop:"1.5rem"}}>Player Detail</h4>
       <p style={{marginBottom: "1rem" }}>
-         Player Detail displays the same metrics as Team Overview, but for the selected player only.  The trendline in this chart also 
+         This page displays the same metrics as Team Overview, but for the selected player only.  The trendline in this chart also 
          shows overuse injury likelihood compared to the team average over the course of the season.  The injury flagging threshold is 
          also included as a dashed red line in the chart.   
       </p> 
       <h4 style={{marginTop:"1.5rem"}}>Overuse Injury Flagging Threshold</h4>
       <p style={{marginBottom: "1rem" }}>
          As mentioned above, the model reporting focuses on a higher prediction recall compared to precision.  This means that some data 
-         points will be incorrectly flagged for injuries, but most true injuries will be correctly flagged.  The prediction threshold 
-         can be configured within the model, and it is currently set to whichever value correctly flags 50% of all injuries.  From there, 
-         the web pages trend line charts and the Player Freshness metric help to identify which players may have several data points flagged 
+         points will be incorrectly flagged for injuries, but many data points associated with true injuries will be correctly flagged.  The prediction threshold 
+         can be configured within the model, and it is currently set to correctly flag 50% of all injuries in the test data.  The trend line charts and the Player 
+         Freshness metric then help to identify which players have several data points flagged 
          for injury within a short time span.      
       </p> 
-      <h3 style={{marginTop:"1.5rem"}}>About Me</h3> 
+      <h3 style={{marginTop:"2.5rem"}}>About Me</h3> 
       <p style={{marginBottom: "1rem" }}>
-         Ryan Houseman is studying Data Science at Northeastern University's Roux Institute in Portland, Maine and will be graduating in after the Spring 2026 semester. 
+         Ryan Houseman is studying Data Science at Northeastern University's Roux Institute in Portland, Maine and will be graduating after the Spring 2026 semester. 
           Ryan currently works on the data visualization and reporting team at Onpoint Health Data, and previously obtained an undergraduate degree in Mathematics from Bowdoin College in 2021.
           In his free time, Ryan enjoys surfing, telemark skiing, playing soccer and pond hockey.  Ryan is a former member of the Bowdoin College 
           soccer team and is still kicking it with Thunder FC in Portland Maine's SMUSL league.  

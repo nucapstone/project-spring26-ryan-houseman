@@ -94,7 +94,7 @@ print(model_data.head())
 X = model_data.drop('injury_flag', axis=1)
 y = model_data['injury_flag']
 
-print(f'\nData Points that meet criteria for injury flag (within {prediction_window} of an overuse injury)')
+print(f'\nData Points that meet criteria for injury flag (within {prediction_window} days of an overuse injury)')
 print(sum(y))
 
 # Split dataset into training and testing sets

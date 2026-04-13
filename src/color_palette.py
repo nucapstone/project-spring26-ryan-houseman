@@ -2,6 +2,10 @@
 
 #################################################################################
 
+#########################################################################################################################
+# NOTE: Some of the color palettes are used for plotting EDA, Dimensionality Reduction, or Logistic Regression Results
+# If you run those scripts on your own data, updating the color palette with Player names & Positions below is recommended
+#########################################################################################################################
 player_colors = {
     "Keito Ishibashi":"#66C2A5",
     "Jack Banks":"#FC8D62",

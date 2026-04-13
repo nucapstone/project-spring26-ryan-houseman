@@ -59,7 +59,7 @@ function App() {
           {sidebarOpen ? "←" : "→"}
         </button>
 
-        {/* Nav items */}
+        {/* Navigation*/}
         {sidebarOpen && (
           <nav style={{ display: "flex", flexDirection: "column", gap: "4px", padding: "8px" }}>
             {[
@@ -90,7 +90,7 @@ function App() {
         )}
       </div>
 
-      {/* Main content */}
+      {/* Main Pages */}
 
     <div style={{ flex: 1, minWidth: 0, padding: "20px", fontFamily: "Arial"}}>
       <h1>Overuse Injury Prediction Model</h1>

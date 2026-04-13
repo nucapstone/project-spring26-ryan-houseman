@@ -97,11 +97,12 @@ def gps_demo(dates_range,model):
                 "Sprint Distance (yds)","No. of Sprints", "Top Speed (mph)","Avg Speed (mph)", "Accelerations","Decelerations","Percentage of Max Speed"]]
 
 
-    print('\nSave Demo GPS Data to CSV')
     if model:
+        print('\nSave Demo GPS Data to CSV')
         out_file = data_dir_demo / 'gps_data_raw_model.csv'
     else:
         out_file = data_dir_demo / 'gps_data_raw_current.csv'
+        print('\nSave Demo GPS Data (Current Season) to CSV')
     df_final.to_csv(out_file,index=False)
 
     return df_final

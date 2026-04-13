@@ -59,8 +59,6 @@ rslts_df = rslts_df.sort_values(['player_name','date'])
 
 time_delta = rslts_df['prediction_window'].max()
 
-print(rslts_df.head())
-
 print(f'\nCalculate # of Predicted Injury Flags from Past {time_delta} days')
 # Calculate number of days in the previous prediction window that a player was flagged for injury
 target_value = 1
@@ -109,6 +107,7 @@ rslts_df['predicted_injury_flag_rate_window'] = round(rslts_df['injury_flag_cnt_
 
 #################################################################################
 # Calculate Freshness Metric (injury likelihood scaled by exponential distribution)
+print('\nCalculate Player Freshness - Injury Likelihood * Exponential Distribution')
 
 lambda_decay = 0.3
 # For each row, calculate the weighted sum of injury_predicted_prob over the past 7 days
@@ -147,8 +146,6 @@ rslts_df["player_freshness"] = round(1000 * (1 - (rslts_df["player_freshness"] -
                                (rslts_df["player_freshness"].max() - rslts_df["player_freshness"].min())),0)
 
 
-
-
 #################################################################################
 # Calculate Average Distance, Top Speed and Percent Max Speed by player over course of season
 # Distance
@@ -159,8 +156,6 @@ rslts_df["avg_top_speed"] = round(rslts_df.groupby("player_id")["top_speed"].tra
 
 # Percent Max Speed
 rslts_df["avg_pcnt_max_speed"] = round(rslts_df.groupby("player_id")["percent_max_speed"].transform("mean"),2)
-
-print(rslts_df.head())
 
 #################################################################################
 
