@@ -55,15 +55,15 @@ Average precision is typically considered one of the best ways to gauge model pe
 * Precision - of all the datapoints flagged for injury, how often was this correct (i.e. how many of those players actually sustained an overuse injury within the next week)
 * Recall - of all the actual overuse injuries, how often does the model flag them
 
-Although the average precision score for the model isn't great, there's a reasonable explanation for this.  Within a week of an injury, a player may have 7 or more data points available.  As dictated by the model configurations, each of those data points are a 1.  In reality, it's not expected that the signs of an overuse injury would be present in all of those data points (some practices may be easier, so it's hard to tell if a player is seriously fatigued or susceptible to injury).  Because of this, the reporting associated with the model outputs focuses on a higher recall and identifying players who have multiple flags within a short timespan.  While some players may be incorrectly flagged for injury, most injuries do have several data points flagged within a 7 day window leading up to the injury.          
+Although the average precision score for the model isn't great, there's a reasonable explanation for this.  Within a week of an injury, a player may have 7 or more data points available.  As dictated by the model configurations, each of those data points are assigned a value of 1.  In reality, it's not expected that the signs of an overuse injury would be present in all of those data points (some practices may be easier, so it's hard to tell if a player is seriously fatigued or susceptible to injury).  Because of this, the reporting associated with the model outputs focuses on a higher recall and identifying players who have multiple flags within a short timespan.  While some players may be incorrectly flagged for injury, most injuries do have several data points flagged within a 7 day window leading up to the injury.          
 
 ## Reporting Overview
-Alongside the injury prediction model, the goal of this project is to provide easily refreshable front-end reporting of the model results.  This allows for quick indentification of players who are at risk for overuse injury, and a coaching staff can update training or recovery plans accordingly.  This front-end is implemented in Vite using React components, and the DEMO version of this model and reporting is published through Github Pages.
+Alongside the injury prediction model, the goal of this project is to provide easily refreshable front-end reporting of the model results.  This allows a coaching staff to quickly identify players who are at risk for overuse injury and update training or recovery plans accordingly.  This front-end is implemented in Vite using React components, and the DEMO version of this model and reporting is published through Github Pages.
 
 INCLUDE LINK TO REPORTING HERE!
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-## Running the Code & Reproducability
+## Running the Code & Reproducibility
 Below is the current guidance for running the various components of this data pipeline and front-end output.  Future work on the project may include the implementation of a backend, which could allow users to refresh the model and reporting while only interactive with the front-end.     
 
 #### Required Software
