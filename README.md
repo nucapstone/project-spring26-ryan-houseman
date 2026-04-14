@@ -63,7 +63,7 @@ Alongside the injury prediction model, the goal of this project is to provide ea
 INCLUDE LINK TO REPORTING HERE!
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-## Running the Code & Reproducability
+## Running the Code & Reproducibility
 Below is the current guidance for running the various components of this data pipeline and front-end output.  Future work on the project may include the implementation of a backend, which could allow users to refresh the model and reporting while only interactive with the front-end.     
 
 #### Required Software
