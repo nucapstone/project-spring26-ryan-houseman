@@ -122,9 +122,8 @@ probs = model.predict_proba(X_test)[:, 1]
 # Better recall would correctly flag more injuries with less false positives
 # Precision would miss more injuries, but have a higher overall accuracy 
 
-#######################################################################
 #################################################################################################################
-# Threshold tuning (precision / recall tradeoff) # Add to logistic regression!
+# Threshold tuning (precision / recall tradeoff)
 
 results = X_test.copy()
 precision, recall, thresholds = precision_recall_curve(y_test, probs)
@@ -134,7 +133,7 @@ f1 = 2 * precision * recall / (precision + recall + 1e-9)
 best_f1_idx = np.argmax(f1)
 thresh_f1   = thresholds[best_f1_idx]
 
-# Option B — target a minimum recall (e.g. catch ≥80% of positives)
+# Option B — target a minimum recall
 if demo:
     MIN_RECALL = 0.30
 else:
@@ -146,7 +145,6 @@ print(f"\n── Threshold options ───────────────
 print(f"  Max-F1 threshold   : {thresh_f1:.3f}")
 print(f"  ≥50% recall thresh : {thresh_recall:.3f}")
 
-# Choose which threshold to apply (swap to thresh_r80 if recall matters more)
 THRESHOLD = thresh_recall
 results["pred"] = (probs >= THRESHOLD).astype(int)
 

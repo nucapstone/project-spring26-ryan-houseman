@@ -1,0 +1,70 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html {
+  font: 62.5% / 1.15 sans-serif;
+}
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-bottom: 0;
+  color: #2c3e50;
+}
+ul {
+  list-style: none;
+  padding: 0;
+}
+button {
+  -moz-osx-font-smoothing: inherit;
+  -webkit-font-smoothing: inherit;
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  line-height: normal;
+  margin: 0;
+  overflow: visible;
+  padding: 0;
+  width: auto;
+}
+body {
+  background-color: whitesmoke;
+  color: #4d4d4d;
+  font:
+    1.6rem/1.25 "Arial",
+    sans-serif;
+  width: 100%;
+}
+
+.th-cell {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 2px solid #4d4d4d;
+  border-left: 1px solid #4d4d4d;
+  border-right: 1px solid #4d4d4d;
+  background-color: #2c3e50;
+  color: whitesmoke;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.td-cell {
+  padding: 8px 14px;
+  border-bottom: 1px solid #4d4d4d;
+  border-left: 1px solid #4d4d4d;
+  border-right: 1px solid #4d4d4d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+label {
+    color: #2c3e50;
+}
