@@ -9,5 +9,4 @@ figures/results/actual/*
 reporting/client/src/data/*
 !reporting/client/src/data/.gitkeep
 reporting/client/node_modules/
-docs/dist/
 docs/node_modules/

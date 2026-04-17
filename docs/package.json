@@ -1,5 +1,5 @@
 {
-  "name": "bms_injury_prediction_model",
+  "name": "overuse_injury_prediction_model",
   "private": true,
   "version": "0.0.0",
   "type": "module",
