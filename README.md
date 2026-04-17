@@ -60,7 +60,7 @@ Although the average precision score for the model isn't great, there's a reason
 ## Reporting Overview
 Alongside the injury prediction model, the goal of this project is to provide easily refreshable front-end reporting of the model results.  This allows a coaching staff to quickly identify players who are at risk for overuse injury and update training or recovery plans accordingly.  This front-end is implemented in Vite using React components, and the DEMO version of this model and reporting is published through Github Pages.
 
-INCLUDE LINK TO REPORTING HERE!
+[Overuse Injury Prediction Model](https://nucapstone.github.io/project-spring26-ryan-houseman/)
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ## Running the Code & Reproducibility
