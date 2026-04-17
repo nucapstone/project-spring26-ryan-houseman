@@ -10,3 +10,4 @@ reporting/client/src/data/*
 !reporting/client/src/data/.gitkeep
 reporting/client/node_modules/
 docs/node_modules/
+docs/junk/
